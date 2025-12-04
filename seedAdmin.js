@@ -1,6 +1,6 @@
 // Run this file once using: node backend/seedAdmin.js
 const mongoose = require('mongoose');
-const Admin = require('./models/Admin'); // Ensure this path correctly points to your Admin model
+const Admin = require('./models/admin'); // Ensure this path correctly points to your Admin model
 require('dotenv').config();
 
 // Use the password defined in the script
