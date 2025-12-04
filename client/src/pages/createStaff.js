@@ -34,7 +34,6 @@ export default function CreateStaff() {
     "Plant Science",
   ];
 
-  // API base URL - adjust according to your backend
   const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
 
   const handleChange = (e) =>
@@ -188,7 +187,6 @@ export default function CreateStaff() {
               disabled={loading}
               minLength="6"
             />
-            <p className="text-sm text-gray-500 mt-1">Password must be at least 6 characters long</p>
           </div>
 
           {/* Staff Role */}
