@@ -293,13 +293,6 @@ export default function StaffDashboard() {
                             {isDisabled ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} className="mr-1"/>}
                             {isDisabled ? "" : "Reject"}
                           </button>
-
-                          <button
-                            onClick={() => navigate(`/students/${s._id}`)}
-                            className="px-3 py-1 bg-gray-100 text-gray-700 rounded-md text-sm border hover:bg-gray-200 transition"
-                          >
-                            View
-                          </button>
                         </div>
                       </td>
                     </tr>
