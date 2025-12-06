@@ -17,8 +17,7 @@ function StudentLogin() {
   const [resetUrl, setResetUrl] = useState("");
   const [copied, setCopied] = useState(false);
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
-
+const API_BASE_URL = "https://clearance-system-backend.onrender.com/api";
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");

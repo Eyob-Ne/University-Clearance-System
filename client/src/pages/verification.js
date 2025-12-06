@@ -13,7 +13,7 @@ const Verification = () => {
     const verifyCertificate = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/certificates/verify/${certificateCode}`
+          `https://clearance-system-backend.onrender.com/api/certificates/verify/${certificateCode}`
         );
         setVerification(response.data);
       } catch (err) {

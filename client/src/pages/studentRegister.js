@@ -64,7 +64,7 @@ function StudentRegister() {
     }
 
     try {
-      const res = await axios.post("http://localhost:5000/api/student/auth/register", formData);
+      const res = await axios.post("https://clearance-system-backend.onrender.com/api/student/auth/register", formData);
 
       setSuccess("Registration successful! You can now login.");
       setTimeout(() => navigate("/student-login"), 1500);

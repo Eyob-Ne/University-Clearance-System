@@ -14,8 +14,7 @@ const StaffAdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
-
+const API_BASE_URL = "https://clearance-system-backend.onrender.com/api";
   const handleChange = (e) => {
     setFormData({
       ...formData,
