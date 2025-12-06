@@ -13,7 +13,7 @@ export default function StaffDashboard() {
 
   const staffProfile = JSON.parse(localStorage.getItem("staffProfile") || "null");
   const token = localStorage.getItem("staffToken");
-const API_BASE_URL = "https://clearance-system-backend.onrender.com/api";
+const API_BASE_URL = "https://clearance-system-backend.onrender.com";
   // --- Utility Functions ---
 
   const getStaffSection = () => {
