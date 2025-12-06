@@ -9,16 +9,15 @@ const adminRoutes = require("./routes/adminRoutes");
 const staffAuthRoutes = require("./routes/staffAuth");
 const staffRoutes = require("./routes/staffRoutes");
 const certificateRoutes = require("./routes/certificateRoutes");
+
 const app = express();
-const PORT = 5000;
 
 // Middleware
 app.use(express.json());
 app.use(cors());
 
-// ✅ MongoDB local connection
-const uri = "mongodb://127.0.0.1:27017/university_clearance";
-
+// MongoDB connection
+const uri = process.env.MONGODB_URI || "mongodb+srv://eyobadb:12345@cluster0.lmkhnbn.mongodb.net/university_clearance";
 mongoose.connect(uri)
   .then(() => console.log("✅ MongoDB connected successfully"))
   .catch((err) => console.error("❌ MongoDB connection failed:", err));
@@ -35,7 +34,11 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/staff", staffAuthRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/certificates", certificateRoutes);
+
+// Get port from Render environment or use default
+const PORT = process.env.PORT || 5000;
+
 // Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
