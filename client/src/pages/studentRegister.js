@@ -27,7 +27,7 @@ function StudentRegister() {
     "Plant Science",
     "Biology",
     "Chemistry",
-    "Management",
+    "Animal Science",
   ];
 
   const handleChange = (e) => {
