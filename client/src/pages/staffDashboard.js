@@ -57,7 +57,6 @@ const API_BASE_URL = "https://clearance-system-backend.onrender.com";
       setStudents(res.data.students || []);
     } catch (err) {
       console.error("Error fetching students:", err.response?.data || err.message);
-      // Optional: More user-friendly error display
     } finally {
       setLoading(false);
     }

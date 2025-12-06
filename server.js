@@ -18,7 +18,7 @@ app.use(cors());
 
 // MongoDB connection
 const uri = process.env.MONGODB_URI || "mongodb+srv://eyobadb:12345@cluster0.lmkhnbn.mongodb.net/university_clearance";
-mongoose.connect(uri)
+mongoose.connect(uri, { dbName: "university_clearance" })
   .then(() => console.log("✅ MongoDB connected successfully"))
   .catch((err) => console.error("❌ MongoDB connection failed:", err));
 
