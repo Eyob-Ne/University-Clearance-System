@@ -141,7 +141,7 @@ function App() {
                   © {new Date().getFullYear()} Mekdela Amba University Clearance System.
                 </p>
                 <p className="text-yellow-400 text-sm font-medium mt-2 md:mt-0">
-                  Developed for MAU Students
+                  Developed for University Students
                 </p>
               </div>
             </div>
