@@ -181,20 +181,5 @@ router.put("/bulk-update", staffProtect, async (req, res) => {
     res.status(500).json({ message: "Server error during bulk update" });
   }
 });
-router.get("/debug/db", async (req, res) => {
-  try {
-    const students = await Student.find();
-    const clearances = await Clearance.find();
-
-    res.json({
-      studentCount: students.length,
-      clearanceCount: clearances.length,
-      firstStudent: students[0],
-      firstClearance: clearances[0]
-    });
-  } catch (err) {
-    res.json({ error: err.message });
-  }
-});
 
 module.exports = router;
