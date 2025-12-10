@@ -12,9 +12,10 @@ const Verification = () => {
   useEffect(() => {
     const verifyCertificate = async () => {
       try {
-        const response = await axios.get(
-          `https://clearance-system-backend.onrender.com/api/certificates/verify/${certificateCode}`
-        );
+      const response = await axios.get(
+  `${process.env.REACT_APP_API_BASE_URL}/api/certificates/verify/${certificateCode}`
+);
+
         setVerification(response.data);
       } catch (err) {
         setError(err.response?.data?.message || "Verification failed");

@@ -34,7 +34,7 @@ const AdminDashboard = () => {
   const [editingDept, setEditingDept] = useState(null);
   const [editDeptName, setEditDeptName] = useState("");
 
-const API_BASE_URL = "https://clearance-system-backend.onrender.com/api";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
   const fetchAllData = async () => {
     try {
       setLoading(true);
