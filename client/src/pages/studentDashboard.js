@@ -9,7 +9,7 @@ function StudentDashboard() {
   const [starting, setStarting] = useState(false);
 
   const token = localStorage.getItem("studentToken");
-const API_BASE_URL = "https://clearance-system-backend.onrender.com";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   // Fetch Student Info and Clearance
   useEffect(() => {
     const fetchStudentData = async () => {
@@ -242,7 +242,7 @@ const CertificateSection = ({ student, clearance }) => {
 
     try {
       const token = localStorage.getItem("studentToken");
-      const API_BASE_URL = "https://clearance-system-backend.onrender.com";      
+      const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;      
       const response = await axios.post(
         `${API_BASE_URL}/api/certificates/generate`,
         {},
