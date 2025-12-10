@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { CheckCircle, XCircle, Clock, LogOut, Loader2, Users, CornerDownRight } from "lucide-react"; // Added LogOut and Loader2 icons
+import { CheckCircle, XCircle, Clock, LogOut, Loader2, Users, CornerDownRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function StaffDashboard() {
@@ -8,12 +8,14 @@ export default function StaffDashboard() {
   const [loading, setLoading] = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [isBulkUpdating, setIsBulkUpdating] = useState(false); // New state for bulk loading
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const navigate = useNavigate();
 
   const staffProfile = JSON.parse(localStorage.getItem("staffProfile") || "null");
   const token = localStorage.getItem("staffToken");
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
+  // Assuming REACT_APP_API_BASE_URL is available in the environment
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL; 
+
   // --- Utility Functions ---
 
   const getStaffSection = () => {
@@ -42,7 +44,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   useEffect(() => {
     if (!token) {
-      navigate("/staff-admin/login"); // Use correct route from your App.js
+      navigate("/staff-admin/login");
       return;
     }
     fetchStudents();
@@ -99,7 +101,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
     if (selectedIds.length === 0) return;
     setIsBulkUpdating(true);
     
-    // Optimistic UI update (optional, but good for UX)
+    // Optimistic UI update
     const previousStudents = [...students]; 
     setStudents(prev => prev.map(s => {
         if (selectedIds.includes(s._id)) {
@@ -116,7 +118,6 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
       );
       
       setSelectedIds([]);
-      // Success message is optional since the optimistic update worked
       
     } catch (err) {
       setStudents(previousStudents); // Revert on error
@@ -147,73 +148,79 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
   if (loading) {
     return (
-        <div className="flex justify-center items-center h-screen bg-gray-50">
-            <Loader2 className="animate-spin text-blue-600" size={48} />
-            <p className="ml-4 text-xl text-gray-700">Loading student data...</p>
-        </div>
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <Loader2 className="animate-spin text-blue-600" size={48} />
+        <p className="ml-4 text-xl text-gray-700">Loading student data...</p>
+      </div>
     );
   }
 
   // --- Main Component JSX ---
   return (
-    <div className="max-w-7xl mx-auto p-8 bg-gray-50 min-h-screen">
+    <div className="max-w-7xl mx-auto p-4 sm:p-8 bg-gray-50 min-h-screen">
 
       {/* HEADER: Title, Profile & Logout */}
-      <div className="flex items-start justify-between border-b pb-6 mb-6 border-blue-200">
-        <div>
-          <h1 className="text-4xl font-extrabold text-blue-900 flex items-center">
-            <Users className="mr-3 text-yellow-500" size={32} />
-            {staffSection.charAt(0).toUpperCase() + staffSection.slice(1)} Clearance Portal
+      {/* Changed flex-col on mobile to allow stacking */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b pb-6 mb-6 border-blue-200">
+        <div className="mb-4 sm:mb-0">
+          {/* Reduced font size for mobile */}
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-blue-900 flex items-center">
+            <Users className="mr-3 text-yellow-500" size={28} />
+            {staffSection.charAt(0).toUpperCase() + staffSection.slice(1)} Portal
           </h1>
-          <p className="text-gray-600 mt-2 text-lg">Manage student sign-offs for the current batch.</p>
+          <p className="text-gray-600 mt-2 text-base sm:text-lg">Manage student sign-offs for the current batch.</p>
         </div>
 
-        <div className="flex flex-col items-end">
-            <div className="text-right p-3 bg-white rounded-lg shadow-md border border-gray-200">
-                <div className="font-bold text-blue-900">{staffProfile?.fullName}</div>
-                <div className="text-sm text-gray-700">{staffProfile?.role}</div>
-                <div className="text-xs text-yellow-600 font-semibold">{staffProfile?.department}</div>
-            </div>
-            
-            {/* LOGOUT BUTTON (NEW FEATURE) */}
-            <button
-                onClick={handleLogout}
-                className="mt-3 flex items-center px-4 py-2 bg-red-600 text-white rounded-full text-sm hover:bg-red-700 transition duration-150 shadow-lg"
-            >
-                <LogOut className="mr-2" size={16} /> Logout
-            </button>
+        {/* Profile & Logout section: Aligned right on desktop, right on mobile */}
+        <div className="flex flex-col items-end w-full sm:w-auto">
+          <div className="text-right p-3 bg-white rounded-lg shadow-md border border-gray-200">
+            <div className="font-bold text-blue-900 text-base">{staffProfile?.fullName}</div>
+            <div className="text-sm text-gray-700">{staffProfile?.role}</div>
+            <div className="text-xs text-yellow-600 font-semibold">{staffProfile?.department}</div>
+          </div>
+          
+          <button
+            onClick={handleLogout}
+            className="mt-3 flex items-center px-4 py-2 bg-red-600 text-white rounded-full text-sm hover:bg-red-700 transition duration-150 shadow-lg"
+          >
+            <LogOut className="mr-2" size={16} /> Logout
+          </button>
         </div>
       </div>
 
       {/* BULK ACTION BAR */}
-      <div className="mb-6 p-4 bg-white rounded-lg shadow flex items-center justify-between border-l-4 border-yellow-500">
-        <p className="text-gray-700 font-medium flex items-center">
-          <CornerDownRight className="mr-2 text-blue-600" size={20} />
+      <div className="mb-6 p-4 bg-white rounded-lg shadow flex flex-col sm:flex-row items-start sm:items-center justify-between border-l-4 border-yellow-500">
+        <p className="text-gray-700 font-medium flex items-center mb-3 sm:mb-0 text-sm sm:text-base">
+          <CornerDownRight className="mr-2 text-blue-600" size={18} />
           {selectedIds.length} student(s) selected for action.
         </p>
-        <div className="flex gap-3">
+        {/* Adjusted gap and added flex-wrap for small screens */}
+        <div className="flex gap-2 sm:gap-3 flex-wrap">
             {isBulkUpdating && <span className="text-blue-600 flex items-center"><Loader2 className="animate-spin mr-2" size={18} /> Processing...</span>}
 
             <button
                 disabled={selectedIds.length === 0 || isBulkUpdating}
                 onClick={() => bulkUpdate("Cleared")}
-                className="flex items-center px-5 py-2 bg-green-600 text-white rounded-full disabled:bg-green-300 hover:bg-green-700 transition shadow-md"
+                // Reduced padding and font size for mobile
+                className="flex items-center px-3 py-1 sm:px-5 sm:py-2 bg-green-600 text-white rounded-full disabled:bg-green-300 hover:bg-green-700 transition shadow-md text-sm"
             >
-                <CheckCircle className="mr-2" size={18} /> Clear All
+                <CheckCircle className="mr-1 sm:mr-2" size={16} /> Clear All
             </button>
 
             <button
                 disabled={selectedIds.length === 0 || isBulkUpdating}
                 onClick={() => bulkUpdate("Rejected")}
-                className="flex items-center px-5 py-2 bg-red-600 text-white rounded-full disabled:bg-red-300 hover:bg-red-700 transition shadow-md"
+                // Reduced padding and font size for mobile
+                className="flex items-center px-3 py-1 sm:px-5 sm:py-2 bg-red-600 text-white rounded-full disabled:bg-red-300 hover:bg-red-700 transition shadow-md text-sm"
             >
-                <XCircle className="mr-2" size={18} /> Reject All
+                <XCircle className="mr-1 sm:mr-2" size={16} /> Reject All
             </button>
         </div>
       </div>
 
-      {/* STUDENTS TABLE */}
-      <div className="bg-white rounded-xl shadow-2xl overflow-hidden border border-gray-200">
+      {/* STUDENTS TABLE - RESPONSIVE WRAPPER */}
+      <div className="bg-white rounded-xl shadow-2xl overflow-x-auto border border-gray-200">
+        {/* The overflow-x-auto above allows the table to scroll horizontally on small screens */}
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-blue-900 text-white sticky top-0">
             <tr>
@@ -225,77 +232,80 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
                   className="rounded text-yellow-500 bg-gray-700 border-gray-600 focus:ring-yellow-500"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">ID Number</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Full Name</th>
-              <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider">Department</th>
-              <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider">Actions</th>
+              {/* Reduced padding on headers for small screens */}
+              <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap">ID Number</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap">Full Name</th>
+              <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wider whitespace-nowrap hidden md:table-cell">Department</th> {/* Hide on mobile */}
+              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider whitespace-nowrap">Status</th>
+              <th className="px-3 py-3 text-center text-xs font-semibold uppercase tracking-wider whitespace-nowrap">Actions</th>
             </tr>
           </thead>
 
           <tbody className="bg-white divide-y divide-gray-100">
             {students.length === 0 ? (
-                <tr>
-                    <td colSpan="6" className="py-10 text-center text-gray-500 text-lg">
-                        🎉 All caught up! No pending students for your section.
-                    </td>
-                </tr>
+              <tr>
+                <td colSpan="6" className="py-10 text-center text-gray-500 text-lg">
+                  🎉 All caught up! No pending students for your section.
+                </td>
+              </tr>
             ) : (
-                students.map((s) => {
-                  const currentStatus = s.clearance?.[staffSection] || "Pending";
-                  const isSelected = selectedIds.includes(s._id);
-                  const isDisabled = updatingId === s._id;
+              students.map((s) => {
+                const currentStatus = s.clearance?.[staffSection] || "Pending";
+                const isSelected = selectedIds.includes(s._id);
+                const isDisabled = updatingId === s._id;
 
-                  return (
-                    <tr key={s._id} 
-                        className={`hover:bg-blue-50 transition duration-100 ${isSelected ? 'bg-yellow-50 border-l-4 border-yellow-500' : ''}`}
-                    >
-                      <td className="w-12 px-4 py-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleSelect(s._id)}
-                          className="rounded text-blue-600 focus:ring-blue-500"
-                        />
-                      </td>
+                return (
+                  <tr key={s._id} 
+                      className={`hover:bg-blue-50 transition duration-100 ${isSelected ? 'bg-yellow-50 border-l-4 border-yellow-500' : ''}`}
+                  >
+                    <td className="w-12 px-4 py-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelect(s._id)}
+                        className="rounded text-blue-600 focus:ring-blue-500"
+                      />
+                    </td>
 
-                      <td className="px-6 py-3 font-medium text-gray-800">{s.studentId}</td>
-                      <td className="px-6 py-3 text-gray-700">{s.fullName}</td>
-                      <td className="px-6 py-3 text-gray-700">{s.department}</td>
+                    <td className="px-3 py-3 font-medium text-gray-800 text-sm whitespace-nowrap">{s.studentId}</td>
+                    <td className="px-3 py-3 text-gray-700 text-sm whitespace-nowrap">{s.fullName}</td>
+                    <td className="px-3 py-3 text-gray-700 text-sm hidden md:table-cell whitespace-nowrap">{s.department}</td>
 
-                      <td className="px-6 py-3 text-center">
-                        <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${badgeClass(currentStatus)}`}>
-                          {currentStatus === "Cleared" ? <CheckCircle size={16} /> :
-                            currentStatus === "Rejected" ? <XCircle size={16} /> :
-                            <Clock size={16} />}
-                          {currentStatus}
-                        </span>
-                      </td>
+                    <td className="px-3 py-3 text-center whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${badgeClass(currentStatus)}`}>
+                        {currentStatus === "Cleared" ? <CheckCircle size={14} /> :
+                          currentStatus === "Rejected" ? <XCircle size={14} /> :
+                          <Clock size={14} />}
+                        {currentStatus}
+                      </span>
+                    </td>
 
-                      <td className="px-6 py-3 text-center">
-                        <div className="flex gap-2 justify-center">
-                          <button
-                            disabled={isDisabled || currentStatus === "Cleared"}
-                            onClick={() => updateClearance(s._id, "Cleared")}
-                            className="flex items-center px-3 py-1 bg-green-500 text-white rounded-md text-sm hover:bg-green-600 disabled:bg-gray-300 transition"
-                          >
-                            {isDisabled ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} className="mr-1"/>}
-                            {isDisabled ? "" : "Clear"}
-                          </button>
+                    <td className="px-3 py-3 text-center whitespace-nowrap">
+                      <div className="flex gap-1 justify-center">
+                        <button
+                          disabled={isDisabled || currentStatus === "Cleared"}
+                          onClick={() => updateClearance(s._id, "Cleared")}
+                          // Reduced padding and icon size for mobile
+                          className="flex items-center px-2 py-1 bg-green-500 text-white rounded-md text-xs hover:bg-green-600 disabled:bg-gray-300 transition"
+                        >
+                          {isDisabled ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                          {isDisabled ? "" : <span className="hidden sm:inline ml-1">Clear</span>}
+                        </button>
 
-                          <button
-                            disabled={isDisabled || currentStatus === "Rejected"}
-                            onClick={() => updateClearance(s._id, "Rejected")}
-                            className="flex items-center px-3 py-1 bg-red-500 text-white rounded-md text-sm hover:bg-red-600 disabled:bg-gray-300 transition"
-                          >
-                            {isDisabled ? <Loader2 size={16} className="animate-spin" /> : <XCircle size={16} className="mr-1"/>}
-                            {isDisabled ? "" : "Reject"}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
+                        <button
+                          disabled={isDisabled || currentStatus === "Rejected"}
+                          onClick={() => updateClearance(s._id, "Rejected")}
+                          // Reduced padding and icon size for mobile
+                          className="flex items-center px-2 py-1 bg-red-500 text-white rounded-md text-xs hover:bg-red-600 disabled:bg-gray-300 transition"
+                        >
+                          {isDisabled ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+                          {isDisabled ? "" : <span className="hidden sm:inline ml-1">Reject</span>}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
