@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiUserPlus, FiCheck, FiX, FiLoader } from "react-icons/fi";
+import { Eye, EyeOff } from 'lucide-react';
 import axios from "axios";
 
 export default function CreateStaff() {
@@ -14,6 +15,7 @@ export default function CreateStaff() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [showPassword, setShowPassword] = useState(false); // Add this state
 
   const roles = [
     "Library",
@@ -28,13 +30,14 @@ export default function CreateStaff() {
     "Software Engineering",
     "Computer Science",
     "Information Technology",
-    "Mechanical Engineering",
-    "Electrical Engineering",
-    "Business Administration",
     "Plant Science",
+    "Biology",
+    "Chemistry",
+    "Animal Science",
   ];
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
+  
   const handleChange = (e) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -117,6 +120,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
       department: "",
     });
     setMessage({ type: '', text: '' });
+    setShowPassword(false); // Also reset password visibility on reset
   };
 
   return (
@@ -175,17 +179,27 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
           {/* Password */}
           <div>
             <label className="text-gray-700 font-medium block mb-2">Password</label>
-            <input
-              type="password"
-              name="password"
-              placeholder="Enter password"
-              value={formData.password}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-              required
-              disabled={loading}
-              minLength="6"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="Enter password"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all pr-12"
+                required
+                disabled={loading}
+                minLength="6"
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
           </div>
 
           {/* Staff Role */}

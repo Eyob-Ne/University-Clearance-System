@@ -16,6 +16,8 @@ import {
   ChevronRight
 } from "lucide-react";
 import axios from "axios";
+import Swal from "sweetalert2";
+import "sweetalert2/dist/sweetalert2.min.css";
 import CreateStaff from "./createStaff"; 
 
 const AdminDashboard = () => {
@@ -30,9 +32,6 @@ const AdminDashboard = () => {
   const [deptLoading, setDeptLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchText, setSearchText] = useState("");
-  const [newDeptName, setNewDeptName] = useState("");
-  const [editingDept, setEditingDept] = useState(null);
-  const [editDeptName, setEditDeptName] = useState("");
 
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
   const fetchAllData = async () => {
@@ -190,116 +189,11 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
     }
   };
 
-  // Add new department
-  const addDepartment = async () => {
-    if (!newDeptName.trim()) {
-      alert("Please enter a department name");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await axios.post(
-        `${API_BASE_URL}/admin/departments`,
-        { name: newDeptName },
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        setDepartments([...departments, { name: newDeptName, studentCount: 0 }]);
-        setNewDeptName("");
-        alert("Department added successfully");
-      }
-    } catch (error) {
-      console.error("Error adding department:", error);
-      alert("Error adding department");
-    }
-  };
-
-  // Update department
-  const updateDepartment = async () => {
-    if (!editDeptName.trim()) {
-      alert("Please enter a department name");
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await axios.put(
-        `${API_BASE_URL}/admin/departments/${editingDept.name}`,
-        { newName: editDeptName },
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        setDepartments(departments.map(dept => 
-          dept.name === editingDept.name ? { ...dept, name: editDeptName } : dept
-        ));
-        setEditingDept(null);
-        setEditDeptName("");
-        alert("Department updated successfully");
-      }
-    } catch (error) {
-      console.error("Error updating department:", error);
-      alert("Error updating department");
-    }
-  };
-
-  // Delete department
-  const deleteDepartment = async (deptName) => {
-    if (!window.confirm(`Are you sure you want to delete ${deptName}? This will affect all students in this department.`)) {
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await axios.delete(
-        `${API_BASE_URL}/admin/departments/${deptName}`,
-        { headers: { 'Authorization': `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        setDepartments(departments.filter(dept => dept.name !== deptName));
-        alert("Department deleted successfully");
-      }
-    } catch (error) {
-      console.error("Error deleting department:", error);
-      alert("Error deleting department");
-    }
-  };
-
   // Filter students based on search text (name and student ID only)
   const filteredStudents = students.filter(student =>
     student.fullName?.toLowerCase().includes(searchText.toLowerCase()) ||
     student.studentId?.toLowerCase().includes(searchText.toLowerCase())
   );
-
-  // Update student clearance status
-  const handleUpdateClearance = async (studentId, newStatus) => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      
-      const response = await axios.put(
-        `${API_BASE_URL}/admin/students/${studentId}/clearance`,
-        { clearanceStatus: newStatus },
-        {
-          headers: { 'Authorization': `Bearer ${token}` }
-        }
-      );
-
-      if (response.data.success) {
-        setStudents(students.map(student => 
-          student._id === studentId 
-            ? { ...student, clearanceStatus: newStatus }
-            : student
-        ));
-        alert("Clearance status updated successfully");
-      }
-    } catch (error) {
-      console.error("Error updating clearance:", error);
-      alert("Error updating clearance status");
-    }
-  };
 
   // Fetch data when component mounts or view changes
   useEffect(() => {
@@ -377,80 +271,50 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
     setCurrentView("create-staff");
   };
 
-  const handleManageStaff = () => {
-    setActiveNav("manage-staff");
-    setCurrentView("manage-staff");
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     window.location.href = '/staff-admin/login';
   };
 
-  const handleDeleteStaff = async (staffId) => {
-    if (window.confirm("Are you sure you want to delete this staff member?")) {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('adminToken');
-        
-        const response = await axios.delete(`${API_BASE_URL}/admin/staff/${staffId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        setStaffMembers(staffMembers.filter(staff => staff._id !== staffId));
-        alert(response.data.message || "Staff member deleted successfully");
-        
-      } catch (error) {
-        console.error("Error deleting staff:", error);
-        alert(error.response?.data?.message || "Error deleting staff member");
-      } finally {
-        setLoading(false);
-      }
+const handleDeleteStaff = async (staffId) => {
+  const result = await Swal.fire({
+    title: "Are you sure?",
+    text: "This staff will be permanently deleted!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Yes, delete it!",
+    cancelButtonText: "Cancel",
+    customClass: {
+      popup: "my-popup",
+      confirmButton: "my-confirm",
+      cancelButton: "my-cancel"
     }
-  };
+  });
 
-  const handleViewStaff = (staffId) => {
-    const staff = staffMembers.find(s => s._id === staffId);
-    if (staff) {
-      alert(`Staff Details:\n\nName: ${staff.name}\nEmail: ${staff.email}\nRole: ${staff.role}\nDepartment: ${staff.department || 'N/A'}\nStatus: ${staff.isActive ? 'Active' : 'Inactive'}`);
-    }
-  };
+  if (!result.isConfirmed) return;
 
-  const handleToggleStatus = async (staffId) => {
-    try {
-      setLoading(true);
-      const staff = staffMembers.find(s => s._id === staffId);
-      const newStatus = !staff.isActive;
-      const token = localStorage.getItem('adminToken');
+  try {
+    setLoading(true);
+    const token = localStorage.getItem("adminToken");
 
-      const response = await axios.put(
-        `${API_BASE_URL}/admin/staff/${staffId}/status`,
-        { isActive: newStatus },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
+    const response = await axios.delete(
+      `${API_BASE_URL}/admin/staff/${staffId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      if (response.data.success) {
-        setStaffMembers(staffMembers.map(staff => 
-          staff._id === staffId 
-            ? { ...staff, isActive: newStatus }
-            : staff
-        ));
-      } else {
-        alert("Failed to update staff status");
-      }
-    } catch (error) {
-      console.error("Error updating staff status:", error);
-      alert("Error updating staff status");
-    } finally {
-      setLoading(false);
-    }
-  };
+    setStaffMembers(staffMembers.filter(staff => staff._id !== staffId));
+
+    Swal.fire("Deleted!", response.data.message, "success");
+
+  } catch (error) {
+    console.error(error);
+    Swal.fire("Error", "Failed to delete staff", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const getColorClasses = (color) => {
     const colors = {
@@ -462,13 +326,6 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
     };
     return colors[color] || colors.blue;
   };
-
-  const getStatusBadge = (isActive) => {
-    return isActive 
-      ? "bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium"
-      : "bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium";
-  };
-
   const getClearanceBadge = (status) => {
     const styles = {
       Approved: "bg-green-100 text-green-800",
@@ -581,9 +438,6 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
                           Department
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Created
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -607,11 +461,6 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {staff.department || "-"}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={getStatusBadge(staff.isActive)}>
-                              {staff.isActive ? "active" : "inactive"}
-                            </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {new Date(staff.createdAt).toLocaleDateString()}

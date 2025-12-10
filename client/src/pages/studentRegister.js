@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { Eye, EyeOff } from "lucide-react";
 
 function StudentRegister() {
   const navigate = useNavigate();
@@ -64,10 +65,10 @@ function StudentRegister() {
     }
 
     try {
-       const res = await axios.post(
-    `${process.env.REACT_APP_API_BASE_URL}/api/student/auth/register`,
-    formData
-  );
+      const res = await axios.post(
+        `${process.env.REACT_APP_API_BASE_URL}/api/student/auth/register`,
+        formData
+      );
 
       setSuccess("Registration successful! You can now login.");
       setTimeout(() => navigate("/student-login"), 1500);
@@ -96,7 +97,6 @@ function StudentRegister() {
         )}
 
         <form onSubmit={handleRegister} className="space-y-5">
-
           {/* Full Name */}
           <div>
             <label className="block text-gray-700 font-medium mb-1">Full Name</label>
@@ -179,17 +179,17 @@ function StudentRegister() {
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
-                className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+                className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-12"
                 placeholder="Create a password (min. 6 characters)"
                 onChange={handleChange}
                 required
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
                 onClick={toggleShowPassword}
               >
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
@@ -200,7 +200,7 @@ function StudentRegister() {
             <div className="relative">
               <input
                 type={showConfirmPassword ? "text" : "password"}
-                className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-10"
+                className="w-full border px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none pr-12"
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={handleConfirmPasswordChange}
@@ -208,10 +208,10 @@ function StudentRegister() {
               />
               <button
                 type="button"
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 transition-colors"
                 onClick={toggleShowConfirmPassword}
               >
-                {showConfirmPassword ? "🙈" : "👁️"}
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
