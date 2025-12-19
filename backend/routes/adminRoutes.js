@@ -226,4 +226,239 @@ router.get('/departments', adminProtect, async (req, res) => {
     res.status(500).json({ success: false, message: 'Error fetching departments' });
   }
 });
+
+// Configure multer for file upload (memory storage)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (
+      file.mimetype === 'text/csv' ||
+      file.mimetype === 'application/vnd.ms-excel' ||
+      file.originalname.toLowerCase().endsWith('.csv')
+    ) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed'), false);
+    }
+  }
+});
+
+// ================= UPLOAD STUDENTS =================
+router.post(
+  '/upload-students',
+  adminProtect,
+  upload.single('csvFile'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          message: 'No CSV file uploaded'
+        });
+      }
+
+      const bufferStream = new stream.PassThrough();
+      bufferStream.end(req.file.buffer);
+
+      const requiredHeaders = ['studentid', 'fullname', 'department', 'year'];
+
+      let rowCount = 0;
+      const students = [];
+      const errors = [];
+
+      // ================= CSV PARSER =================
+      await new Promise((resolve, reject) => {
+        bufferStream
+          .pipe(csv({
+            mapHeaders: ({ header }) =>
+              header
+                ?.replace(/^\uFEFF/, '') // BOM FIX
+                .trim()
+                .toLowerCase()
+                .replace(/\s+/g, '')
+                .replace(/[^a-z0-9]/g, '')
+          }))
+          .on('headers', headers => {
+            const missing = requiredHeaders.filter(h => !headers.includes(h));
+            if (missing.length) {
+              bufferStream.destroy();
+              reject(
+                new Error(`Missing required headers: ${missing.join(', ')}`)
+              );
+            }
+          })
+          .on('data', data => {
+            rowCount++;
+
+            // Skip empty rows
+            if (Object.values(data).every(v => !v)) return;
+
+            const year = Number(data.year);
+
+            if (
+              !data.studentid ||
+              !data.fullname ||
+              !data.department ||
+              !Number.isInteger(year)
+            ) {
+              errors.push({
+                row: rowCount,
+                error: 'Missing required fields',
+                data
+              });
+              return;
+            }
+
+            if (year < 1 || year > 5) {
+              errors.push({
+                row: rowCount,
+                error: 'Year must be between 1 and 5',
+                data
+              });
+              return;
+            }
+
+            students.push({
+              studentId: data.studentid.trim().toUpperCase(),
+              fullName: data.fullname.trim(),
+              department: data.department.trim(),
+              year,
+              isVerified: true,
+              verificationStatus: 'Verified',
+              isActive: true,
+              clearanceStatus: 'Pending',
+              verifiedBy: req.admin?.name || 'Admin',
+              verifiedAt: new Date(),
+              createdAt: new Date(),
+              updatedAt: new Date()
+            });
+          })
+          .on('end', resolve)
+          .on('error', reject);
+      });
+
+      if (!students.length) {
+        return res.status(400).json({
+          success: false,
+          message: 'No valid student records found',
+          errors
+        });
+      }
+
+      // ================= BULK WRITE =================
+const operations = students.map(student => ({
+  updateOne: {
+    filter: { studentId: student.studentId },
+    update: {
+      $set: {
+        ...student,
+        updatedAt: new Date()
+      },
+      $setOnInsert: {
+        createdAt: new Date()
+      }
+    },
+    upsert: true
+  }
+}));
+
+let dbResult;
+try {
+  dbResult = await Student.bulkWrite(operations, { ordered: false });
+} catch (dbError) {
+  console.error('Database error:', dbError);
+  return res.status(500).json({
+    success: false,
+    message: 'Database error while saving students',
+    error:
+      process.env.NODE_ENV === 'development'
+        ? dbError.message
+        : undefined
+  });
+}
+
+// ================= SUMMARY COUNTS (MATCH UI) =================
+const newlyCreated = dbResult.upsertedCount || 0;
+const alreadyExists = dbResult.modifiedCount || 0;
+const successfullyProcessed = newlyCreated + alreadyExists;
+
+return res.json({
+  success: true,
+  message: 'CSV processed successfully',
+  summary: {
+    totalRows: students.length + errors.length, // IMPORTANT
+    successfullyProcessed,
+    newlyCreated,
+    alreadyExists,
+    failedRows: errors.length
+  },
+  preview: students.slice(0, 10),
+  errors: errors.length > 0 ? errors : undefined
+});
+
+    } catch (error) {
+      console.error('CSV Upload Error:', error);
+
+      return res.status(400).json({
+        success: false,
+        message: error.message || 'CSV processing failed'
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/admin/students/verify/:studentId
+ * Check if student exists in database (for registration page)
+ */
+router.get('/students/verify/:studentId', async (req, res) => {
+  try {
+    const studentId = req.params.studentId.trim().toUpperCase();
+    
+    const student = await Student.findOne({ studentId })
+      .select('studentId fullName department year accountStatus emailVerified');
+    
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student ID not found. Please contact administrator.'
+      });
+    }
+    
+    // Check account status
+    if (student.accountStatus === 'Active') {
+      return res.status(400).json({
+        success: false,
+        message: 'Account already active. Please login instead.'
+      });
+    }
+    
+    if (student.accountStatus === 'PendingVerification') {
+      return res.status(400).json({
+        success: false,
+        message: 'Account pending verification. Check your email for verification code.'
+      });
+    }
+    
+    // Account is Unclaimed - can register
+    res.json({
+      success: true,
+      student: {
+        studentId: student.studentId,
+        fullName: student.fullName,
+        department: student.department,
+        year: student.year,
+        accountStatus: student.accountStatus
+      }
+    });
+    
+  } catch (err) {
+    console.error('Verify student error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error verifying student'
+    });
+  }
+});
 module.exports = router;

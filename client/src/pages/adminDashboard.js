@@ -3,6 +3,7 @@ import {
   BarChart3,
   Users,
   LogOut,
+  Upload,
   UserPlus,
   Home,
   Trash2,
@@ -18,6 +19,7 @@ import {
 import axios from "axios";
 import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
+import CSVUpload from "./CSVUpload";
 import CreateStaff from "./createStaff"; 
 
 const AdminDashboard = () => {
@@ -210,6 +212,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, view: "dashboard" },
+    { id: "csv-upload", label: "Upload Students", icon: Upload, view: "csv-upload" }, 
     { id: "staff", label: "Create Staff", icon: UserPlus, view: "create-staff" },
     { id: "manage-staff", label: "Manage Staff", icon: Users, view: "manage-staff" },
     { id: "students", label: "Students List", icon: Users, view: "students-list" },
@@ -352,6 +355,9 @@ const handleDeleteStaff = async (staffId) => {
     switch (currentView) {
       case "create-staff":
         return <CreateStaff onBack={() => handleNavigation("dashboard", "dashboard")} />;
+
+        case "csv-upload":
+    return <CSVUpload onBack={() => handleNavigation("dashboard", "dashboard")}/>;
       
       case "manage-staff":
         return (

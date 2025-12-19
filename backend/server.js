@@ -9,6 +9,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const staffAuthRoutes = require("./routes/staffAuth");
 const staffRoutes = require("./routes/staffRoutes");
 const certificateRoutes = require("./routes/certificateRoutes");
+const studentRegistrationRoutes = require('./routes/studentRegistration');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/staff", staffAuthRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/certificates", certificateRoutes);
+app.use("/api/students", studentRegistrationRoutes);
 
 // Get port from Render environment or use default
 const PORT = process.env.PORT || 5000;
