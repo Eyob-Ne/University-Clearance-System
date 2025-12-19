@@ -374,10 +374,7 @@ try {
   return res.status(500).json({
     success: false,
     message: 'Database error while saving students',
-    error:
-      process.env.NODE_ENV === 'development'
-        ? dbError.message
-        : undefined
+    error: dbError.message   // 👈 ALWAYS show it for now
   });
 }
 

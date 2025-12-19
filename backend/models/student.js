@@ -1,75 +1,61 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcryptjs");
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 const studentSchema = new mongoose.Schema({
-  studentId: {
-    type: String,
-    required: true,
+  // Existing fields from CSV upload:
+  studentId: { 
+    type: String, 
+    required: true, 
     unique: true,
-    trim: true
+    trim: true,
+    uppercase: true
   },
-
-  fullName: {
-    type: String,
+  fullName: { 
+    type: String, 
     required: true,
     trim: true
   },
-
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true
-  },
-
-  password: {
-    type: String,
+  department: { 
+    type: String, 
     required: true
   },
-
-  department: {
-    type: String,
-    required: true,
-    trim: true
-  },
-
-  year: {
-    type: Number,
+  year: { 
+    type: String, 
     required: true
-  },
-
-  // Each department updates this: { library: "Cleared", dormitory: "Pending", ... }
-  clearance: {
-    type: Map,
-    of: {
-      type: String,
-      enum: ["Pending", "Cleared", "Rejected"]
-    },
-    default: {}
-  },
-
-  clearanceStatus: {
-    type: String,
-    enum: ["Pending", "Approved", "Rejected"],
-    default: "Pending"
-  },
-
-  // Password reset fields
-  resetPasswordToken: {
-    type: String,
-    default: null
   },
   
-  resetPasswordExpires: {
-    type: Date,
-    default: null
+  // New registration fields (set by student):
+  email: { 
+    type: String, 
+    trim: true,
+    lowercase: true,
+    sparse: true // Allows multiple nulls
   },
-
-  dateCreated: {
-    type: Date,
-    default: Date.now
+  
+  password: { 
+    type: String
+  },
+  
+  // Account status fields:
+  accountStatus: {
+    type: String,
+    enum: ['Unclaimed', 'PendingVerification', 'Active', 'Suspended'],
+    default: 'Unclaimed'
+  },
+  
+  // Existing clearance fields:
+  clearanceStatus: { 
+    type: String, 
+    enum: ['Pending', 'Cleared', 'Rejected'],
+    default: 'Pending'
+  },
+  
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
   }
+}, {
+  timestamps: true
 });
 
 // Hash password before saving
