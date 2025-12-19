@@ -12,6 +12,8 @@ import StaffDashboard from "./pages/staffDashboard";
 import StaffAdminLogin from "./pages/StaffAdminLogin";
 import ResetPassword from "./pages/resetPassword";
 import Verification from "./pages/verification";
+import Upload from "./pages/CSVUpload";
+
 import "./App.css";
 
 function App() {
@@ -113,6 +115,7 @@ function App() {
             <Route path="/staff-admin/login" element={<StaffAdminLogin />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/verify/:certificateCode" element={<Verification />} />
+            <Route path="/student-upload" element={<Upload />} />
           </Routes>
         </main>
 
