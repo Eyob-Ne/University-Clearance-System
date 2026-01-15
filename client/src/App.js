@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, NavLink } from "react-router-dom";
-import { FaHome, FaUserGraduate, FaUserShield, FaPhone, FaEnvelope, FaMapMarkerAlt, FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaTelegram, FaBars, FaTimes } from 'react-icons/fa';
+import { FaHome, FaUserGraduate, FaUserShield, FaYoutube,FaPhone, FaEnvelope, FaMapMarkerAlt, FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaTelegram, FaBars, FaTimes } from 'react-icons/fa';
 
 import Home from "./pages/home";
 import StudentRegister from "./pages/studentRegister";
@@ -120,7 +120,7 @@ function App() {
         </main>
 
         {/* FOOTER */}
-        <footer className="bg-gradient-to-r from-gray-900 to-blue-900 text-white border-t-4 border-yellow-400">
+       <footer className="bg-gradient-to-r from-gray-900 to-blue-900 text-white border-t-4 border-yellow-400">
           <div className={`${mainContainerClass} py-8 md:py-10`}>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 md:gap-10">
 
@@ -134,24 +134,33 @@ function App() {
                 </p>
 
                 {/* Social Media Icons */}
-                <div className="flex space-x-3 pt-2">
-                  <a href="https://t.me/EyobaNe" target="_blank" rel="noopener noreferrer" className="text-blue-300 hover:text-yellow-400 bg-blue-700 p-2 rounded-full transition-colors">
-                    <FaTelegram size={18} />
-                  </a>
-                  <a href="#" className="text-blue-300 hover:text-yellow-400 bg-blue-700 p-2 rounded-full transition-colors">
-                    <FaFacebook size={18} />
-                  </a>
-                  <a href="#" className="text-blue-300 hover:text-yellow-400 bg-blue-700 p-2 rounded-full transition-colors">
-                    <FaTwitter size={18} />
-                  </a>
-                  <a href="#" className="text-blue-300 hover:text-yellow-400 bg-blue-700 p-2 rounded-full transition-colors">
-                    <FaLinkedin size={18} />
-                  </a>
-                  <a href="#" className="text-blue-300 hover:text-yellow-400 bg-blue-700 p-2 rounded-full transition-colors">
-                    <FaInstagram size={18} />
-                  </a>
-                </div>
-              </div>
+                 <div className="pt-4">
+            <p className="text-gray-400 text-sm font-medium mb-4">Connect with us</p>
+            <div className="flex gap-3">
+              {[
+                { icon: <FaTelegram className="w-5 h-5" />, href: "https://t.me/EyobaNe", color: "bg-gradient-to-br from-blue-500 to-blue-600" },
+                { icon: <FaFacebook className="w-5 h-5" />, href: "#", color: "bg-gradient-to-br from-blue-600 to-blue-700" },
+                { icon: <FaTwitter className="w-5 h-5" />, href: "#", color: "bg-gradient-to-br from-sky-500 to-sky-600" },
+                { icon: <FaLinkedin className="w-5 h-5" />, href: "#", color: "bg-gradient-to-br from-blue-700 to-blue-800" },
+                { icon: <FaInstagram className="w-5 h-5" />, href: "#", color: "bg-gradient-to-br from-pink-500 to-purple-600" },
+                { icon: <FaYoutube className="w-5 h-5" />, href: "#", color: "bg-gradient-to-br from-red-500 to-red-600" },
+              ].map((social, index) => (
+                <a
+                  key={index}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${social.color} p-3 rounded-xl hover:scale-110 hover:shadow-lg hover:shadow-blue-500/25 transition-all duration-300 group relative overflow-hidden`}
+                >
+                  <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="relative text-white">
+                    {social.icon}
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </div>
 
               {/* Quick Resources */}
               <div className="space-y-4">
