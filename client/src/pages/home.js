@@ -119,7 +119,6 @@ function Home() {
                     alt="Mekdela Amba University Campus" 
                     className="w-full h-auto rounded-3xl shadow-2xl transform hover:scale-[1.02] transition duration-500 object-cover"
                   />
-                  
                 </div>
               </div>
               
@@ -295,7 +294,7 @@ function Home() {
         </div>
         <div className="text-white text-xl font-bold mb-3">Time-Saving</div>
         <div className="text-blue-200/80 leading-relaxed">
-          Reduce processing time by 80%. Get approved in hours, not days.
+          Reduce processing time by 90%. Get approved in hours, not days.
         </div>
       </div>
 
