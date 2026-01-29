@@ -6,41 +6,35 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
   email: {
     type: String,
     required: true,
     unique: true,
   },
-
   password: {
     type: String,
     required: true,
   },
-
   // 🔑 User role
-     role: {
-      type: String,
-      enum: [
-        "Library",
-        "Dormitory",
-        "Finance",
-        "Registrar",
-        "Cafeteria",
-        "Department Head",
-      ],
-      required: true,
-    },
-
-    department: {
-      type: String,
-      required: function () {
-        return this.role === "Department Head";
-      },
+  role: {
+    type: String,
+    enum: [
+      "Library",
+      "Dormitory",
+      "Finance",
+      "Registrar",
+      "Cafeteria",
+      "Department Head",
+    ],
+    required: true,
+  },
+  department: {
+    type: String,
+    required: function () {
+      return this.role === "Department Head";
     },
   },
-  { timestamps: true }
-);
+}, { timestamps: true });
 
 // 🔐 Hash password before saving
 userSchema.pre("save", async function (next) {
@@ -52,6 +46,11 @@ userSchema.pre("save", async function (next) {
 // 🔑 Compare passwords during login
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Add comparePassword method (same as matchPassword but different name for consistency)
+userSchema.methods.comparePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
 module.exports = mongoose.model("staff", userSchema);

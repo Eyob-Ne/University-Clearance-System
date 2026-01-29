@@ -208,7 +208,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
                   <input
                     type="text"
                     value={studentId}
-                    onChange={(e) => setStudentId(e.target.value)}
+                    onChange={(e) => setStudentId(e.target.value.toUpperCase())}
                     className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl text-gray-700 placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                     placeholder="Student ID"
                     required

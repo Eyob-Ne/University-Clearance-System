@@ -114,18 +114,65 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
   return (
     <div className="max-w-4xl mx-auto mt-10 px-5">
       {/* Header with Student Welcome */}
-      <div className="bg-white p-6 shadow rounded-xl border mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          Welcome, {student.fullName}!
-        </h1>
-        <p className="text-gray-600 text-lg">
-          Student ID: <span className="font-semibold">{student.studentId}</span> 
-          {" | "}
-          Department: <span className="font-semibold">{student.department}</span>
-          {" | "}
-          Year: <span className="font-semibold">{student.year}</span>
-        </p>
+        <div className="max-w-7xl mx-auto">
+    <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-2xl p-8 md:p-10 mb-8 overflow-hidden relative">
+      {/* Background Pattern */}
+      <div className="absolute top-0 right-0 w-64 h-64 opacity-10">
+        <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <path fill="#FFFFFF" d="M45.7,-79.4C59.2,-73.3,70.6,-61.7,78.1,-48.3C85.6,-34.9,89.1,-19.8,88.4,-5.1C87.7,9.6,82.8,19.1,76.1,30.7C69.3,42.3,60.7,56,48.8,64.8C36.8,73.6,21.6,77.4,6,70.8C-9.6,64.2,-19.2,47.2,-30.9,35.6C-42.6,24.1,-56.5,18,-66.1,6.9C-75.8,-4.2,-81.3,-20.2,-77.8,-33.9C-74.3,-47.6,-61.8,-59.1,-47.8,-65C-33.8,-70.9,-18.6,-71.2,-2.2,-68.1C14.1,-65,28.2,-58.5,45.7,-79.4Z" transform="translate(100 100)" />
+        </svg>
       </div>
+      
+      <div className="relative z-10">
+        <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 animate-fade-in">
+          Welcome back, <span className="text-yellow-300">{student.fullName}!</span>
+        </h1>
+        <p className="text-blue-100 text-lg md:text-xl mb-6 max-w-3xl">
+          Ready to continue your academic journey?
+        </p>
+        </div>
+        </div>
+        </div>
+     <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border border-gray-100 shadow-xl shadow-gray-100/50 mb-8">
+  <div className="flex flex-wrap items-center gap-6">
+    {/* Student ID */}
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+        <span className="text-white font-bold">ID</span>
+      </div>
+      <div>
+        <p className="text-gray-500 text-sm">Student ID</p>
+        <p className="text-gray-800 font-bold text-lg">{student.studentId}</p>
+      </div>
+    </div>
+    
+    <div className="h-8 w-px bg-gradient-to-b from-gray-200 to-transparent"></div>
+    
+    {/* Department */}
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center">
+        <span className="text-white font-bold">DP</span>
+      </div>
+      <div>
+        <p className="text-gray-500 text-sm">Department</p>
+        <p className="text-gray-800 font-bold text-lg">{student.department}</p>
+      </div>
+    </div>
+    
+    <div className="h-8 w-px bg-gradient-to-b from-gray-200 to-transparent"></div>
+    
+    {/* Year */}
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
+        <span className="text-white font-bold">YR</span>
+      </div>
+      <div>
+        <p className="text-gray-500 text-sm">Academic Year</p>
+        <p className="text-gray-800 font-bold text-lg">Year {student.year}</p>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Start Clearance Section */}
       {!clearance ? (
@@ -134,12 +181,30 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
             You have not started your clearance yet.
           </h2>
           <button
-            onClick={startClearance}
-            disabled={starting}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md transition disabled:opacity-50"
-          >
-            {starting ? "Starting..." : "Start Clearance Process"}
-          </button>
+              onClick={startClearance}
+              disabled={starting}
+              className="group relative px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-lg font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              <div className="flex items-center justify-center gap-3">
+                {starting ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Initializing Clearance...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    <span>Start Clearance Process</span>
+                  </>
+                )}
+              </div>
+              <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
         </div>
       ) : (
         <>
@@ -179,7 +244,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
               />
 
               <StatusCard
-                title="Registrar"
+                title="Sport Master"
                 status={clearance.registrarStatus}
                 icon={badgeIcon(clearance.registrarStatus)}
                 color={badgeColor(clearance.registrarStatus)}
@@ -196,7 +261,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
           {/* Overall Status */}
           <div className="bg-white p-6 shadow rounded-xl border text-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-3">Overall Status</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-3">Registrar</h2>
 
             <div className={`inline-flex items-center gap-2 px-5 py-2 border rounded-full text-lg font-semibold ${badgeColor(clearance.overallStatus)}`}>
               {badgeIcon(clearance.overallStatus)}
