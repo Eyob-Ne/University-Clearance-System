@@ -20,11 +20,23 @@ const clearanceSchema = new mongoose.Schema({
         default: "Pending"
     },
 
+    // NEW: Department rejection reason
+    departmentReason: {
+        type: String,
+        default: ""
+    },
+
     // Other Clearance Sections
     libraryStatus: {
         type: String,
         enum: ["Pending", "Cleared", "Rejected"],
         default: "Pending"
+    },
+
+    // NEW: Library rejection reason
+    libraryReason: {
+        type: String,
+        default: ""
     },
 
     dormStatus: {
@@ -33,10 +45,22 @@ const clearanceSchema = new mongoose.Schema({
         default: "Pending"
     },
 
+    // NEW: Dorm rejection reason
+    dormReason: {
+        type: String,
+        default: ""
+    },
+
     financeStatus: {
         type: String,
         enum: ["Pending", "Cleared", "Rejected"],
         default: "Pending"
+    },
+
+    // NEW: Finance rejection reason
+    financeReason: {
+        type: String,
+        default: ""
     },
 
     registrarStatus: {
@@ -45,15 +69,27 @@ const clearanceSchema = new mongoose.Schema({
         default: "Pending"
     },
 
+    // NEW: Registrar rejection reason
+    registrarReason: {
+        type: String,
+        default: ""
+    },
+
     cafeteriaStatus: {
         type: String,
         enum: ["Pending", "Cleared", "Rejected"],
         default: "Pending"
     },
 
+    // NEW: Cafeteria rejection reason
+    cafeteriaReason: {
+        type: String,
+        default: ""
+    },
+
     overallStatus: {
         type: String,
-        enum: ["Pending", "Approved", "Rejected"], // Changed to "Approved" to match Student model
+        enum: ["Pending", "Approved", "Rejected"],
         default: "Pending"
     },
 
@@ -61,6 +97,8 @@ const clearanceSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
+}, {
+    timestamps: true // Add this to track createdAt and updatedAt
 });
 
 // Update overall status before saving
