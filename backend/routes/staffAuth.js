@@ -33,10 +33,11 @@ router.post("/login", async (req, res) => {
       token,
       staff: {
         id: staff._id,
-        fullName: staff.fullName,
+        name: staff.name,         
+        fullName: staff.name,        
         email: staff.email,
         role: staff.role,
-        department: staff.department || null,
+       department: staff.department || null,
       },
     });
   } catch (err) {

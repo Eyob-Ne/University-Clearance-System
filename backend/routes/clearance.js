@@ -57,6 +57,7 @@ router.post("/start", protectStudent, async (req, res) => {
     }
 });
 
+// UPDATED: Get student clearance with reasons
 router.get("/me", protectStudent, async (req, res) => {
     try {
         const studentId = req.student._id;
@@ -70,6 +71,7 @@ router.get("/me", protectStudent, async (req, res) => {
             });
         }
 
+        // UPDATED: Include clearance reasons in response
         res.json({
             clearance: {
                 departmentStatus: clearance.departmentStatus,
@@ -80,6 +82,15 @@ router.get("/me", protectStudent, async (req, res) => {
                 cafeteriaStatus: clearance.cafeteriaStatus,
                 overallStatus: clearance.overallStatus,
                 createdAt: clearance.createdAt
+            },
+            // NEW: Add clearance reasons to response
+            clearanceReasons: {
+                department: clearance.departmentReason || "",
+                library: clearance.libraryReason || "",
+                dormitory: clearance.dormReason || "",
+                finance: clearance.financeReason || "",
+                registrar: clearance.registrarReason || "",
+                cafeteria: clearance.cafeteriaReason || ""
             }
         });
 
