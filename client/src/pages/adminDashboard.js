@@ -14,7 +14,11 @@ import {
   ArrowRight,
   Building,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+   AlertTriangle,
+  AlertCircle,
+  Calendar,
+ 
 } from "lucide-react";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -217,6 +221,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
     { id: "manage-staff", label: "Manage Staff", icon: Users, view: "manage-staff" },
     { id: "students", label: "Students List", icon: Users, view: "students-list" },
     { id: "departments", label: "Departments", icon: Building, view: "departments" },
+    { id: "clearance-settings", label: "Clearance Settings", icon: Clock, view: "clearance-settings" },
   ];
 
   const statsData = [
@@ -355,6 +360,8 @@ const handleDeleteStaff = async (staffId) => {
     switch (currentView) {
       case "create-staff":
         return <CreateStaff onBack={() => handleNavigation("dashboard", "dashboard")} />;
+        case "clearance-settings":
+  return <ClearanceSettings onBack={() => handleNavigation("dashboard", "dashboard")} />;
 
         case "csv-upload":
     return <CSVUpload onBack={() => handleNavigation("dashboard", "dashboard")}/>;
@@ -738,74 +745,705 @@ const handleDeleteStaff = async (staffId) => {
       
       default:
         return (
-          <>
-            {/* PAGE HEADER */}
-            <div className="flex justify-between items-center mb-8">
+  <>
+    {/* PAGE HEADER - Enhanced */}
+    <div className="relative mb-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-1 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+              Dashboard Overview
+            </h1>
+          </div>
+          <p className="text-gray-600 text-lg max-w-2xl">
+            Welcome back! Here's what's happening with your clearance system today.
+          </p>
+        </div>
+        <button 
+          onClick={fetchAllData}
+          disabled={loading}
+          className="group relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 flex items-center gap-3 shadow-lg hover:shadow-xl hover:scale-[1.02] disabled:cursor-not-allowed"
+        >
+          <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 rounded-2xl transition-opacity"></div>
+          <RefreshCw size={20} className={loading ? "animate-spin" : "group-hover:rotate-180 transition-transform duration-500"} />
+          <span className="relative">Refresh Data</span>
+        </button>
+      </div>
+    </div>
+
+    {/* Error Message - Enhanced */}
+    {error && (
+      <div className="mb-8 animate-slideDown">
+        <div className="bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 text-red-800 p-5 rounded-r-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-start gap-3">
+              <div className="mt-1">
+                <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span className="font-medium">{error}</span>
+            </div>
+            <button 
+              onClick={fetchAllData}
+              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-5 py-2.5 rounded-xl font-medium text-sm transition-all shadow-sm hover:shadow"
+            >
+              Retry Now
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* STATS GRID - Colorful and Beautiful */}
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-16">
+      {statsData.map((stat, index) => {
+        const Icon = stat.icon;
+        
+        // Color gradients for each card based on stat color
+        const colorGradients = {
+          blue: "from-blue-50 to-blue-100 border-blue-200",
+          green: "from-emerald-50 to-teal-100 border-emerald-200",
+          purple: "from-purple-50 to-violet-100 border-purple-200",
+          orange: "from-orange-50 to-amber-100 border-orange-200",
+          red: "from-rose-50 to-pink-100 border-rose-200",
+          indigo: "from-indigo-50 to-blue-100 border-indigo-200",
+          cyan: "from-cyan-50 to-sky-100 border-cyan-200",
+        };
+
+        // Icon background gradients
+        const iconGradients = {
+          blue: "bg-gradient-to-br from-blue-500 to-blue-600",
+          green: "bg-gradient-to-br from-emerald-500 to-teal-600",
+          purple: "bg-gradient-to-br from-purple-500 to-violet-600",
+          orange: "bg-gradient-to-br from-orange-500 to-amber-600",
+          red: "bg-gradient-to-br from-rose-500 to-pink-600",
+          indigo: "bg-gradient-to-br from-indigo-500 to-blue-600",
+          cyan: "bg-gradient-to-br from-cyan-500 to-sky-600",
+        };
+
+        const gradientClass = colorGradients[stat.color] || colorGradients.blue;
+        const iconGradientClass = iconGradients[stat.color] || iconGradients.blue;
+
+        return (
+          <div 
+            key={index}
+            className={`group relative bg-gradient-to-br ${gradientClass} border rounded-3xl p-8 hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] overflow-hidden`}
+          >
+            {/* Animated background element */}
+            <div className="absolute -right-6 -top-6 h-24 w-24 rounded-full bg-white opacity-10 group-hover:opacity-20 transition-opacity duration-500"></div>
+            
+            {/* Top section with icon and value */}
+            <div className="flex items-start justify-between mb-6">
+              <div className="relative">
+                <div className={`${iconGradientClass} p-4 rounded-2xl shadow-lg`}>
+                  <Icon size={28} className="text-white" />
+                </div>
+              </div>
+              
+              {/* Optional badge or trend indicator */}
+              {stat.trend && (
+                <div className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-semibold ${
+                  stat.trend === 'up' 
+                    ? 'bg-emerald-100 text-emerald-800' 
+                    : 'bg-rose-100 text-rose-800'
+                }`}>
+                  {stat.trend === 'up' ? '↑' : '↓'} {stat.change}
+                </div>
+              )}
+            </div>
+            
+            {/* Content section */}
+            <div className="relative z-10">
+              <p className="text-sm font-medium text-gray-600 uppercase tracking-wider mb-2">
+                {stat.title}
+              </p>
+              <h3 className="text-4xl font-bold text-gray-900 mb-3">
+                {stat.value}
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                {stat.description}
+              </p>
+              
+              {/* Optional progress bar */}
+              {stat.progress !== undefined && (
+                <div className="mt-6">
+                  <div className="flex justify-between text-sm text-gray-500 mb-2">
+                    <span>Progress</span>
+                    <span>{stat.progress}%</span>
+                  </div>
+                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${
+                        stat.color === 'green' ? 'bg-emerald-500' :
+                        stat.color === 'blue' ? 'bg-blue-500' :
+                        stat.color === 'purple' ? 'bg-purple-500' :
+                        stat.color === 'orange' ? 'bg-orange-500' : 'bg-gray-500'
+                      }`}
+                      style={{ width: `${stat.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Decorative corner */}
+            <div className="absolute bottom-0 right-0 h-16 w-16 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+              <div className="absolute bottom-0 right-0 h-8 w-8 border-r-2 border-b-2 border-gray-400 rounded-br-2xl"></div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  </>
+);
+    }
+  };
+
+  const ClearanceSettings = ({ onBack }) => {
+  const [settings, setSettings] = useState({
+    startDate: '',
+    endDate: '',
+    isActive: true
+  });
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState(null);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  // Fetch current settings
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const token = localStorage.getItem('adminToken');
+      const response = await axios.get(`${API_BASE_URL}/admin/clearance-settings`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.data.success) {
+        const data = response.data.data;
+        setSettings({
+          startDate: data.startDate ? data.startDate.split('T')[0] : '',
+          endDate: data.endDate ? data.endDate.split('T')[0] : '',
+          isActive: data.isActive !== false
+        });
+        
+        // Check current status
+        checkSystemStatus();
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      setError("Failed to load clearance settings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Check current system status
+  const checkSystemStatus = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/system/status`);
+      if (response.data.success) {
+        setCurrentStatus(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error checking status:", error);
+    }
+  };
+
+  // Save settings
+  const saveSettings = async (e) => {
+    e.preventDefault();
+    
+    if (!settings.startDate || !settings.endDate) {
+      setError("Please select both start and end dates");
+      return;
+    }
+    
+    const start = new Date(settings.startDate);
+    const end = new Date(settings.endDate);
+    
+    if (start >= end) {
+      setError("End date must be after start date");
+      return;
+    }
+    
+    if (end < new Date()) {
+      const confirmed = window.confirm(
+        "The end date is in the past. This will immediately close the system. Continue?"
+      );
+      if (!confirmed) return;
+    }
+
+    try {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+      
+      const token = localStorage.getItem('adminToken');
+      const response = await axios.post(
+        `${API_BASE_URL}/admin/clearance-settings`,
+        {
+          startDate: settings.startDate + 'T00:00:00',
+          endDate: settings.endDate + 'T23:59:59',
+          isActive: settings.isActive
+        },
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      );
+      
+      if (response.data.success) {
+        setSuccess("Clearance settings saved successfully!");
+        await checkSystemStatus();
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error);
+      setError(error.response?.data?.message || "Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Emergency toggle
+  const handleEmergencyToggle = async (action) => {
+    const confirmMessage = action === 'open' 
+      ? "Are you sure you want to force open the system? This will override the schedule."
+      : "Are you sure you want to force close the system? All active sessions will be terminated.";
+    
+    if (!window.confirm(confirmMessage)) return;
+    
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('adminToken');
+      const response = await axios.post(
+        `${API_BASE_URL}/admin/emergency-toggle`,
+        { action },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      
+      if (response.data.success) {
+        setSuccess(`System ${action}ed successfully!`);
+        await fetchSettings();
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to update system status");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Not set';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  // Calculate time remaining
+  const calculateTimeRemaining = () => {
+    if (!currentStatus?.endDate) return null;
+    
+    const end = new Date(currentStatus.endDate);
+    const now = new Date();
+    const diffMs = end - now;
+    
+    if (diffMs <= 0) return null;
+    
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    return `${days}d ${hours}h ${minutes}m`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  return (
+  <div className="space-y-6 animate-fadeIn">
+    {/* Status Banner - Enhanced */}
+    {currentStatus && (
+      <div className={`relative overflow-hidden rounded-2xl shadow-lg transform transition-all duration-500 hover:scale-[1.01] ${currentStatus.isOpen ? 'bg-gradient-to-r from-emerald-500 to-green-600' : 'bg-gradient-to-r from-rose-500 to-red-600'}`}>
+        <div className="absolute inset-0 bg-white/5"></div>
+        <div className="relative p-8 text-white">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+            <div className="flex items-center gap-6">
+              <div className={`p-4 rounded-2xl backdrop-blur-sm ${currentStatus.isOpen ? 'bg-green-900/30' : 'bg-red-900/30'}`}>
+                {currentStatus.isOpen ? (
+                  <CheckCircle className="text-green-300" size={36} />
+                ) : (
+                  <XCircle className="text-red-300" size={36} />
+                )}
+              </div>
               <div>
-                <h1 className="text-4xl font-bold text-gray-900 mb-2">
-                  Dashboard Overview
-                </h1>
-                <p className="text-gray-600 text-lg">
-                  Welcome back! Here's what's happening with your clearance system today.
+                <div className="flex items-center gap-3 mb-2">
+                  <h3 className="text-3xl font-bold">
+                    System is {currentStatus.isOpen ? 'OPEN' : 'CLOSED'}
+                  </h3>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${currentStatus.isOpen ? 'bg-green-800 text-green-100' : 'bg-red-800 text-red-100'}`}>
+                    {currentStatus.isOpen ? 'ACTIVE' : 'INACTIVE'}
+                  </span>
+                </div>
+                <p className="text-white/90 text-lg">
+                  {currentStatus.isOpen 
+                    ? 'Students can currently submit clearance requests'
+                    : 'Clearance submissions are currently disabled'
+                  }
                 </p>
               </div>
-              <button 
-                onClick={fetchAllData}
-                disabled={loading}
-                className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-6 py-3 rounded-xl font-semibold transition-all flex items-center gap-2"
-              >
-                <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
-                Refresh Data
-              </button>
             </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
-                <div className="flex justify-between items-center">
-                  <span>{error}</span>
-                  <button 
-                    onClick={fetchAllData}
-                    className="bg-red-600 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Retry
-                  </button>
+            
+            {currentStatus.isOpen && calculateTimeRemaining() && (
+              <div className="lg:text-right bg-white/10 backdrop-blur-sm rounded-2xl p-6 min-w-[200px]">
+                <div className="flex lg:flex-col items-center lg:items-end gap-4 lg:gap-2">
+                  <div>
+                    <p className="text-white/70 text-sm uppercase tracking-wider">Closes in</p>
+                    <div className="flex items-end gap-2">
+                      <p className="text-4xl font-bold tracking-tight">{calculateTimeRemaining()}</p>
+                    </div>
+                  </div>
+                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <Clock className="text-white" size={20} />
+                  </div>
                 </div>
               </div>
             )}
-
-            {/* STATS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
-              {statsData.map((stat, index) => {
-                const Icon = stat.icon;
-                return (
-                  <div 
-                    key={index}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-lg transition-all duration-300 hover:transform hover:-translate-y-1"
-                  >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className={`p-3 rounded-xl ${getColorClasses(stat.color)}`}>
-                        <Icon size={24} />
-                      </div>
-                    </div>
-                    
-                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                      {stat.title}
-                    </h3>
-                    <p className="text-3xl font-bold text-gray-900 mb-1">
-                      {stat.value}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {stat.description}
-                    </p>
-                  </div>
-                );
-              })}
+          </div>
+          
+          {/* Progress bar for time remaining */}
+          {currentStatus.isOpen && currentStatus.endDate && (
+            <div className="mt-6">
+              <div className="flex justify-between text-sm text-white/80 mb-2">
+                <span>Time remaining</span>
+                <span>{Math.round((new Date() - new Date(currentStatus.startDate)) / (new Date(currentStatus.endDate) - new Date(currentStatus.startDate)) * 100)}%</span>
+              </div>
+              <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full transition-all duration-1000"
+                  style={{ 
+                    width: `${Math.max(0, Math.min(100, 100 - Math.round((new Date() - new Date(currentStatus.startDate)) / (new Date(currentStatus.endDate) - new Date(currentStatus.startDate)) * 100)))}%` 
+                  }}
+                ></div>
+              </div>
             </div>
-          </>
-        );
-    }
-  };
+          )}
+        </div>
+      </div>
+    )}
+
+    {/* Messages with Animation */}
+    {error && (
+      <div className="animate-slideDown bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-6 rounded-xl shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <XCircle className="text-red-600" size={20} />
+            </div>
+            <span className="text-red-800 font-medium">{error}</span>
+          </div>
+          <button 
+            onClick={() => setError('')}
+            className="p-2 hover:bg-red-200 rounded-lg transition-colors"
+          >
+            <XCircle className="text-red-600" size={18} />
+          </button>
+        </div>
+      </div>
+    )}
+    
+    {success && (
+      <div className="animate-slideDown bg-gradient-to-r from-emerald-50 to-green-100 border-l-4 border-emerald-500 p-6 rounded-xl shadow-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-100 rounded-lg">
+              <CheckCircle className="text-emerald-600" size={20} />
+            </div>
+            <span className="text-emerald-800 font-medium">{success}</span>
+          </div>
+          <button 
+            onClick={() => setSuccess('')}
+            className="p-2 hover:bg-emerald-200 rounded-lg transition-colors"
+          >
+            <XCircle className="text-emerald-600" size={18} />
+          </button>
+        </div>
+      </div>
+    )}
+
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Schedule Form - Enhanced */}
+      <div className="lg:col-span-2">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300">
+          <div className="bg-gradient-to-r from-gray-50 to-white p-8 border-b border-gray-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Clock className="text-blue-600" size={24} />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900">
+                Set Clearance Window
+              </h3>
+            </div>
+            <p className="text-gray-600">
+              Define the exact dates when students can submit clearance requests
+            </p>
+          </div>
+          
+          <form onSubmit={saveSettings} className="p-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              {/* Start Date Card */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative bg-white p-6 rounded-2xl border border-gray-200">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">
+                    <span className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      Start Date *
+                    </span>
+                  </label>
+                  <input
+                    type="date"
+                    value={settings.startDate}
+                    onChange={(e) => setSettings({...settings, startDate: e.target.value})}
+                    className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-lg font-medium bg-gray-50"
+                    required
+                    min={new Date().toISOString().split('T')[0]}
+                  />
+                  <p className="text-sm text-gray-500 mt-3 flex items-center gap-2">
+                    <Clock size={14} />
+                    System opens at 00:00 on this date
+                  </p>
+                </div>
+              </div>
+
+              {/* End Date Card */}
+              <div className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative bg-white p-6 rounded-2xl border border-gray-200">
+                  <label className="block text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wider">
+                    <span className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      End Date *
+                    </span>
+                  </label>
+                  <input
+                    type="date"
+                    value={settings.endDate}
+                    onChange={(e) => setSettings({...settings, endDate: e.target.value})}
+                    className="w-full px-4 py-4 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all text-lg font-medium bg-gray-50"
+                    required
+                    min={settings.startDate || new Date().toISOString().split('T')[0]}
+                  />
+                  <p className="text-sm text-gray-500 mt-3 flex items-center gap-2">
+                    <Clock size={14} />
+                    System closes at 23:59 on this date
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Toggle Switch - Enhanced */}
+            <div className="flex items-center justify-between p-6 bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl border border-gray-200 mb-8">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-white rounded-lg shadow-sm border">
+                  <RefreshCw className="text-blue-600" size={20} />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Automatic Scheduling</h4>
+                  <p className="text-sm text-gray-600">System opens/closes automatically based on schedule</p>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  id="isActive"
+                  checked={settings.isActive}
+                  onChange={(e) => setSettings({...settings, isActive: e.target.checked})}
+                  className="sr-only peer"
+                />
+                <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-blue-600"></div>
+              </label>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-4">
+              <button
+                type="submit"
+                disabled={saving}
+                className="group relative flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 text-white px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-xl flex items-center justify-center gap-3"
+              >
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                    <span>Saving Changes...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle size={22} />
+                    <span>Save Schedule</span>
+                  </>
+                )}
+                <div className="absolute inset-0 bg-white/10 rounded-2xl blur-xl group-hover:blur-2xl transition-all duration-300"></div>
+              </button>
+              
+              <button
+                type="button"
+                onClick={fetchSettings}
+                className="px-6 py-4 border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 rounded-2xl font-semibold transition-all duration-300 hover:bg-gray-50 flex items-center gap-2"
+              >
+                <RefreshCw size={18} />
+                Reset
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {/* Right Column - Enhanced */}
+      <div className="space-y-6">
+        {/* Schedule Info Card */}
+        {settings.startDate && settings.endDate && (
+          <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl border border-gray-100 p-6 transform hover:scale-[1.02] transition-all duration-300">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <Calendar className="text-indigo-600" size={20} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">
+                Scheduled Window
+              </h3>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Calendar className="text-blue-600" size={18} />
+                </div>
+                <div>
+                  <p className="text-sm text-blue-700 font-medium">Opens</p>
+                  <p className="font-bold text-gray-900">{formatDate(settings.startDate + 'T00:00:00')}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-100">
+                <div className="p-2 bg-purple-100 rounded-lg">
+                  <Calendar className="text-purple-600" size={18} />
+                </div>
+                <div>
+                  <p className="text-sm text-purple-700 font-medium">Closes</p>
+                  <p className="font-bold text-gray-900">{formatDate(settings.endDate + 'T23:59:59')}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <Clock className="text-emerald-600" size={18} />
+                </div>
+                <div>
+                  <p className="text-sm text-emerald-700 font-medium">Duration</p>
+                  <p className="font-bold text-gray-900">
+                    {Math.ceil((new Date(settings.endDate) - new Date(settings.startDate)) / (1000 * 60 * 60 * 24))} days
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Emergency Controls - Enhanced */}
+        <div className="bg-gradient-to-br from-white to-red-50 rounded-2xl shadow-xl border border-red-100 overflow-hidden transform hover:scale-[1.02] transition-all duration-300">
+          <div className="bg-gradient-to-r from-red-50 to-orange-50 p-6 border-b border-red-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg">
+                <AlertTriangle className="text-red-600" size={24} />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900">
+                Emergency Controls
+              </h3>
+            </div>
+            <p className="text-red-600 text-sm mt-2">
+              Override the schedule in urgent situations
+            </p>
+          </div>
+          
+          <div className="p-6 space-y-4">
+            <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-xl border border-amber-200">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={18} />
+                <p className="text-sm text-amber-700">
+                  ⚠️ Use these controls only in emergencies. They will override all scheduled settings.
+                </p>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => handleEmergencyToggle('open')}
+              disabled={loading || (currentStatus?.isOpen === true)}
+              className="group relative w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-6 py-4 rounded-xl font-bold transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg disabled:hover:transform-none flex items-center justify-center gap-3"
+            >
+              <div className="absolute inset-0 bg-white/20 rounded-xl blur-md group-hover:blur-xl transition-all duration-300"></div>
+              <CheckCircle size={22} className="relative z-10" />
+              <span className="relative z-10">Force Open System</span>
+            </button>
+            
+            <button
+              onClick={() => handleEmergencyToggle('close')}
+              disabled={loading || (currentStatus?.isOpen === false)}
+              className="group relative w-full bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 disabled:from-gray-300 disabled:to-gray-400 text-white px-6 py-4 rounded-xl font-bold transition-all duration-300 transform hover:-translate-y-0.5 hover:shadow-lg disabled:hover:transform-none flex items-center justify-center gap-3"
+            >
+              <div className="absolute inset-0 bg-white/20 rounded-xl blur-md group-hover:blur-xl transition-all duration-300"></div>
+              <XCircle size={22} className="relative z-10" />
+              <span className="relative z-10">Force Close System</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Add these styles to your CSS or Tailwind config */}
+    <style jsx>{`
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      
+      .animate-fadeIn {
+        animation: fadeIn 0.6s ease-out;
+      }
+      
+      .animate-slideDown {
+        animation: slideDown 0.4s ease-out;
+      }
+    `}</style>
+  </div>
+);
+};
 
 return (
   <div className="flex min-h-screen bg-gray-50">

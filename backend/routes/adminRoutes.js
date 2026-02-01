@@ -4,6 +4,7 @@ const Admin = require("../models/admin");
 const Staff = require("../models/staff"); 
 const Student = require("../models/student");
 const { adminProtect } = require("../middleware/auth");
+const ClearanceSettings = require("../models/ClearanceSettings");
 const multer = require('multer');
 const csv = require('csv-parser');
 const stream = require('stream');
@@ -458,6 +459,142 @@ router.get('/students/verify/:studentId', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error verifying student'
+    });
+  }
+});
+
+// CLEARANCE SYSTEM SETTINGS ENDPOINTS
+// ============================================
+
+// GET current clearance settings
+router.get("/clearance-settings", adminProtect, async (req, res) => {
+  try {
+    const settings = await ClearanceSettings.getCurrentSettings();
+    const systemStatus = settings.isSystemOpen();
+    
+    res.json({
+      success: true,
+      data: {
+        startDate: settings.startDate,
+        endDate: settings.endDate,
+        isActive: settings.isActive,
+        manuallyOpened: settings.manuallyOpened,
+        emergencyClosed: settings.emergencyClosed,
+        lastUpdated: settings.lastUpdated,
+        updatedBy: settings.updatedBy,
+        currentStatus: systemStatus
+      }
+    });
+  } catch (error) {
+    console.error("Get clearance settings error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch clearance settings"
+    });
+  }
+});
+
+// UPDATE clearance settings
+router.post("/clearance-settings", adminProtect, async (req, res) => {
+  try {
+    const { startDate, endDate, isActive } = req.body;
+    
+    // Validation
+    if (!startDate || !endDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Start date and end date are required"
+      });
+    }
+    
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const now = new Date();
+    
+    // Validate dates
+    if (start >= end) {
+      return res.status(400).json({
+        success: false,
+        message: "End date must be after start date"
+      });
+    }
+    
+    if (end < now) {
+      return res.status(400).json({
+        success: false,
+        message: "End date cannot be in the past"
+      });
+    }
+    
+    // Get current settings
+    let settings = await ClearanceSettings.getCurrentSettings();
+    
+    // Update settings
+    settings.startDate = start;
+    settings.endDate = end;
+    settings.isActive = isActive !== undefined ? isActive : settings.isActive;
+    settings.updatedBy = req.admin._id;
+    settings.lastUpdated = new Date();
+    
+    // Reset manual overrides when schedule changes
+    if (settings.manuallyOpened || settings.emergencyClosed) {
+      settings.manuallyOpened = false;
+      settings.emergencyClosed = false;
+    }
+    
+    await settings.save();
+    
+    res.json({
+      success: true,
+      message: "Clearance settings updated successfully",
+      data: settings
+    });
+  } catch (error) {
+    console.error("Update clearance settings error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update clearance settings"
+    });
+  }
+});
+
+// EMERGENCY TOGGLE (open/close system)
+router.post("/emergency-toggle", adminProtect, async (req, res) => {
+  try {
+    const { action } = req.body;
+    
+    if (!['open', 'close'].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: "Action must be 'open' or 'close'"
+      });
+    }
+    
+    const settings = await ClearanceSettings.getCurrentSettings();
+    
+    if (action === 'open') {
+      settings.manuallyOpened = true;
+      settings.emergencyClosed = false;
+    } else {
+      settings.manuallyOpened = false;
+      settings.emergencyClosed = true;
+    }
+    
+    settings.updatedBy = req.admin._id;
+    settings.lastUpdated = new Date();
+    
+    await settings.save();
+    
+    res.json({
+      success: true,
+      message: `System ${action === 'open' ? 'manually opened' : 'emergency closed'} successfully`,
+      data: settings
+    });
+  } catch (error) {
+    console.error("Emergency toggle error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to toggle system status"
     });
   }
 });

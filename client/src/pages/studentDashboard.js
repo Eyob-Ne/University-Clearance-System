@@ -9,7 +9,8 @@ function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [selectedRejection, setSelectedRejection] = useState(null); // NEW: Track which rejection is clicked
-
+  const [systemStatus, setSystemStatus] = useState(null);
+  const [checkingSystem, setCheckingSystem] = useState(true);
   const token = localStorage.getItem("studentToken");
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
@@ -53,10 +54,24 @@ function StudentDashboard() {
 
     if (token) {
       fetchStudentData();
+      fetchSystemStatus();
     } else {
       setLoading(false);
     }
   }, [token]);
+
+  // Fetch system status
+const fetchSystemStatus = async () => {
+  try {
+    const res = await axios.get(`${API_BASE_URL}/api/system/status`);
+    setSystemStatus(res.data.data);
+  } catch (err) {
+    console.error("Failed to fetch system status");
+  } finally {
+    setCheckingSystem(false);
+  }
+};
+
 
   // Map badge color by status
   const badgeColor = (status) => {
@@ -99,27 +114,56 @@ function StudentDashboard() {
     setSelectedRejection(null);
   };
 
-  const startClearance = async () => {
-    try {
-      setStarting(true);
-      const res = await axios.post(
-        `${API_BASE_URL}/api/clearance/start`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setClearance(res.data.clearance);
+ const startClearance = async () => {
+  try {
+    setStarting(true);
+    const res = await axios.post(
+      `${API_BASE_URL}/api/clearance/start`,
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    
+    // Check if it's an error response
+    if (res.data.success === false) {
+      // This is the clearance window error
+      alert(`❌ ${res.data.message}`);
+      if (res.data.opensAt) {
+        alert(`System opens on: ${new Date(res.data.opensAt).toLocaleString()}`);
+      }
       setStarting(false);
-      // Refresh student data to get updated clearanceStatus
-      const studentRes = await axios.get(`${API_BASE_URL}/api/student/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setStudent(studentRes.data);
-    } catch (err) {
-      console.error("Error starting clearance:", err);
-      alert(err.response?.data?.message || "Failed to start clearance");
-      setStarting(false);
+      return;
     }
-  };
+    
+    setClearance(res.data.clearance);
+    setStarting(false);
+    
+    // Refresh student data
+    const studentRes = await axios.get(`${API_BASE_URL}/api/student/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setStudent(studentRes.data);
+    
+  } catch (err) {
+    console.error("Error starting clearance:", err);
+    
+    // Improved error handling
+    if (err.response?.status === 403) {
+      // Clearance window error
+      const errorData = err.response.data;
+      alert(`❌ ${errorData.message || "Clearance system is closed"}`);
+      if (errorData.opensAt) {
+        alert(`📅 System opens: ${new Date(errorData.opensAt).toLocaleString()}`);
+      }
+    } else if (err.response?.status === 401) {
+      alert("Session expired. Please login again.");
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    } else {
+      alert(err.response?.data?.message || "Failed to start clearance");
+    }
+    setStarting(false);
+  }
+};
 
   if (loading) {
     return (
@@ -202,14 +246,15 @@ function StudentDashboard() {
       </div>
 
       {/* Start Clearance Section */}
-      {!clearance ? (
+      {(!clearance && systemStatus) ? (
+
         <div className="bg-white p-8 text-center shadow rounded-xl border">
           <h2 className="text-xl font-semibold text-gray-700 mb-3">
             You have not started your clearance yet.
           </h2>
           <button
             onClick={startClearance}
-            disabled={starting}
+            disabled={starting || !systemStatus.isOpen}
             className="group relative px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white text-lg font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-800 shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <div className="flex items-center justify-center gap-3">
@@ -226,13 +271,73 @@ function StudentDashboard() {
                   <svg className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
-                  <span>Start Clearance Process</span>
+                  <span>
+                  {!systemStatus.isOpen
+                  ? "Clearance Closed"
+                  : "Start Clearance Process"}
+              </span>
                 </>
               )}
             </div>
             <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>
+          {/* System Status Message */}
+{!systemStatus.isOpen && (
+  <div className="mt-6 mb-8 animate-slideDown">
+    <div className="relative flex rounded-2xl bg-white shadow-lg border-l-4 border-amber-500 overflow-hidden hover:shadow-xl transition-all duration-300">
+      {/* Left accent bar */}
+      <div className="w-2 bg-gradient-to-b from-amber-500 to-orange-500"></div>
+      
+      <div className="flex-1 p-6">
+        <div className="flex items-start gap-4">
+          {/* Icon */}
+          <div className="flex-shrink-0">
+            <div className="h-14 w-14 bg-gradient-to-br from-amber-100 to-orange-100 rounded-xl flex items-center justify-center">
+              <svg className="w-7 h-7 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+          
+          {/* Content */}
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-3">
+              <h3 className="text-xl font-bold text-gray-900">Clearance System Closed</h3>
+              <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-medium rounded-full">
+                🔒
+              </span>
+            </div>
+            
+            <p className="text-gray-700 mb-6">
+              {systemStatus.message}
+            </p>
+            
+            <div className="flex flex-wrap items-center gap-4">
+              {systemStatus.opensIn && (
+                <div className="flex items-center gap-2 text-gray-800">
+                  <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                  <span className="font-medium">Expected to reopen in:</span>
+                  <span className="font-bold">{systemStatus.opensIn}</span>
+                </div>
+              )}
+              
+              <button
+                onClick={() => window.location.reload()}
+                className="ml-auto px-5 py-2.5 bg-amber-500 text-white font-medium rounded-lg hover:bg-amber-600 transition-all duration-300 shadow-sm hover:shadow"
+              >
+                Check Status
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
+  </div>
+)}
+        </div>
+        
       ) : (
         <>
           {/* Clearance Overview Card */}

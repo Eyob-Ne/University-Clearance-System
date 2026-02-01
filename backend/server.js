@@ -10,7 +10,7 @@ const staffAuthRoutes = require("./routes/staffAuth");
 const staffRoutes = require("./routes/staffRoutes");
 const certificateRoutes = require("./routes/certificateRoutes");
 const studentRegistrationRoutes = require('./routes/studentRegistration');
-
+const systemRoutes = require("./routes/systemRoutes");
 const app = express();
 
 // Middleware
@@ -36,7 +36,7 @@ app.use("/api/staff", staffAuthRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/certificates", certificateRoutes);
 app.use("/api/students", studentRegistrationRoutes);
-
+app.use("/api/system", systemRoutes);
 // Get port from Render environment or use default
 const PORT = process.env.PORT || 5000;
 

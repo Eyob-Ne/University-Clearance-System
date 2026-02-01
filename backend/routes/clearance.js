@@ -3,11 +3,12 @@ const router = express.Router();
 const Clearance = require("../models/clearanceRequest");
 const Student = require("../models/student");
 const { protectStudent } = require("../middleware/auth");
+const checkClearanceWindow = require("../middleware/clearanceWindow");
 
 // ------------------------------------------
 // Start Clearance Process
 // ------------------------------------------
-router.post("/start", protectStudent, async (req, res) => {
+router.post("/start", protectStudent, checkClearanceWindow, async (req, res) => {
     try {
         const studentId = req.student._id;
 
