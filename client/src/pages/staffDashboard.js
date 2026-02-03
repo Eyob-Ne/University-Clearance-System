@@ -844,15 +844,17 @@ export default function StaffDashboard() {
         </div>
       )}
 
-      {/* Profile Modal (unchanged) */}
+    {/* Profile Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {/* Background overlay */}
             <div 
               className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75 backdrop-blur-sm" 
               onClick={closeProfileModal}
             />
 
+            {/* Modal panel */}
             <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="absolute top-4 right-4">
                 <button
@@ -863,6 +865,7 @@ export default function StaffDashboard() {
                 </button>
               </div>
 
+              {/* Header */}
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-8">
                 <div className="flex items-center space-x-3">
                   <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
@@ -876,7 +879,207 @@ export default function StaffDashboard() {
               </div>
 
               <div className="px-6 py-6">
-                {/* ... (rest of profile modal remains unchanged) ... */}
+                {/* Personal Information Section */}
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <User className="h-5 w-5 mr-2 text-blue-500" />
+                    Personal Information
+                  </h4>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        value={profileData.fullName}
+                        onChange={(e) => {
+                          setProfileData({ ...profileData, fullName: e.target.value });
+                          setProfileErrors({ ...profileErrors, fullName: "" });
+                        }}
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          profileErrors.fullName ? 'border-rose-500' : 'border-gray-300'
+                        } focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+                        placeholder="Enter your full name"
+                      />
+                      {profileErrors.fullName && (
+                        <p className="mt-2 text-sm text-rose-600 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {profileErrors.fullName}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+                        <Mail className="h-4 w-4 mr-1.5 text-gray-500" />
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={profileData.email}
+                        onChange={(e) => {
+                          setProfileData({ ...profileData, email: e.target.value });
+                          setProfileErrors({ ...profileErrors, email: "" });
+                        }}
+                        className={`w-full px-4 py-3 rounded-lg border ${
+                          profileErrors.email ? 'border-rose-500' : 'border-gray-300'
+                        } focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
+                        placeholder="Enter your email"
+                      />
+                      {profileErrors.email && (
+                        <p className="mt-2 text-sm text-rose-600 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {profileErrors.email}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Security Section */}
+                <div className="pt-6 border-t border-gray-200">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <Shield className="h-5 w-5 mr-2 text-blue-500" />
+                    Security Settings
+                  </h4>
+                  
+                  <p className="text-sm text-gray-600 mb-4">
+                    Leave blank if you don't want to change your password
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Current Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showCurrentPassword ? "text" : "password"}
+                          value={profileData.currentPassword}
+                          onChange={(e) => {
+                            setProfileData({ ...profileData, currentPassword: e.target.value });
+                            setProfileErrors({ ...profileErrors, currentPassword: "" });
+                          }}
+                          className={`w-full px-4 py-3 rounded-lg border ${
+                            profileErrors.currentPassword ? 'border-rose-500' : 'border-gray-300'
+                          } focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10`}
+                          placeholder="Enter current password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        >
+                          {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                      {profileErrors.currentPassword && (
+                        <p className="mt-2 text-sm text-rose-600 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {profileErrors.currentPassword}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          value={profileData.newPassword}
+                          onChange={(e) => {
+                            setProfileData({ ...profileData, newPassword: e.target.value });
+                            setProfileErrors({ ...profileErrors, newPassword: "" });
+                          }}
+                          className={`w-full px-4 py-3 rounded-lg border ${
+                            profileErrors.newPassword ? 'border-rose-500' : 'border-gray-300'
+                          } focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10`}
+                          placeholder="Enter new password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        >
+                          {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                      {profileErrors.newPassword && (
+                        <p className="mt-2 text-sm text-rose-600 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {profileErrors.newPassword}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Confirm New Password
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={profileData.confirmPassword}
+                          onChange={(e) => {
+                            setProfileData({ ...profileData, confirmPassword: e.target.value });
+                            setProfileErrors({ ...profileErrors, confirmPassword: "" });
+                          }}
+                          className={`w-full px-4 py-3 rounded-lg border ${
+                            profileErrors.confirmPassword ? 'border-rose-500' : 'border-gray-300'
+                          } focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10`}
+                          placeholder="Confirm new password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                        >
+                          {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                        </button>
+                      </div>
+                      {profileErrors.confirmPassword && (
+                        <p className="mt-2 text-sm text-rose-600 flex items-center">
+                          <AlertCircle className="h-4 w-4 mr-1" />
+                          {profileErrors.confirmPassword}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      onClick={closeProfileModal}
+                      disabled={profileLoading}
+                      className="px-5 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-all duration-200 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleProfileUpdate}
+                      disabled={profileLoading}
+                      className="inline-flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {profileLoading ? (
+                        <>
+                          <Loader2 className="animate-spin h-4 w-4 mr-2" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          Save Changes
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
