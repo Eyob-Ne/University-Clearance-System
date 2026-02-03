@@ -35,7 +35,10 @@ const studentSchema = new mongoose.Schema({
   password: { 
     type: String
   },
-  
+  otp: {
+  code: String,
+  expires: Date
+},
   // Account status fields:
   accountStatus: {
     type: String,

@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-const sendResetEmail = async (toEmail, resetLink) => {
+const sendOtpEmail = async (toEmail, otp) => {
   try {
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -13,28 +13,29 @@ const sendResetEmail = async (toEmail, resetLink) => {
     const mailOptions = {
       from: `"University Clearance System" <${process.env.EMAIL_USER}>`,
       to: toEmail,
-      subject: "Reset Your Password",
+      subject: "Your Password Reset OTP",
       html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-          <h2>Password Reset Request</h2>
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color:#111;">
+          <h2>Password Reset Verification</h2>
           <p>You requested to reset your password.</p>
-          <p>Click the button below to proceed:</p>
 
-          <a href="${resetLink}"
-             style="
-               display:inline-block;
-               padding:12px 20px;
-               background:#2563eb;
-               color:#ffffff;
-               text-decoration:none;
-               border-radius:6px;
-               font-weight:bold;
-             ">
-            Reset Password
-          </a>
+          <p style="margin: 20px 0;">Use the OTP below to continue:</p>
+
+          <div style="
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 6px;
+            background: #f3f4f6;
+            padding: 15px;
+            text-align: center;
+            border-radius: 8px;
+            color: #2563eb;
+          ">
+            ${otp}
+          </div>
 
           <p style="margin-top:20px;">
-            ⏰ This link expires in <b>15 minutes</b>.
+            ⏰ This OTP expires in <b>15 minutes</b>.
           </p>
 
           <p>If you did not request this, please ignore this email.</p>
@@ -48,11 +49,11 @@ const sendResetEmail = async (toEmail, resetLink) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("📧 Reset email sent to:", toEmail);
+    console.log("📧 OTP email sent to:", toEmail);
   } catch (error) {
-    console.error("❌ Email sending failed:", error);
-    throw new Error("Email could not be sent");
+    console.error("❌ OTP email sending failed:", error);
+    throw new Error("OTP email could not be sent");
   }
 };
 
-module.exports = sendResetEmail;
+module.exports = sendOtpEmail;

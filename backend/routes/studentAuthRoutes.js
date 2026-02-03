@@ -147,31 +147,77 @@ router.get("/me", protectStudent, async (req, res) => {
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
-
     const student = await Student.findOne({ email });
     if (!student) {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    const token = crypto.randomBytes(32).toString("hex");
+    // Generate 6-digit OTP
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = Date.now() + 15 * 60 * 1000; // 15 min
 
-    student.resetPasswordToken = token;
-    student.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    student.otp = { code: otpCode, expires: otpExpires };
     await student.save();
 
-    const resetLink = `${process.env.FRONTEND_URL}/student/reset-password/${token}`;
+    // Send OTP via email
+    await sendResetEmail(student.email, `Your OTP is: ${otpCode}`);
 
-    // 📧 REAL EMAIL SEND
-    await sendResetEmail(student.email, resetLink);
-
-    res.json({
-      message: "Password reset link sent to your email"
-    });
+    res.json({ message: "OTP sent to your email" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to send reset email" });
+    res.status(500).json({ error: "Failed to send OTP" });
   }
 });
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const student = await Student.findOne({ email });
+    if (!student || !student.otp) {
+      return res.status(400).json({ error: "Invalid request" });
+    }
+
+    if (student.otp.expires < Date.now()) {
+      return res.status(400).json({ error: "OTP expired" });
+    }
+
+    if (student.otp.code !== otp) {
+      return res.status(400).json({ error: "Incorrect OTP" });
+    }
+
+    res.json({ message: "OTP verified successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to verify OTP" });
+  }
+});
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const student = await Student.findOne({ email });
+    if (!student || !student.otp) {
+      return res.status(400).json({ error: "Invalid request" });
+    }
+
+    if (student.otp.expires < Date.now()) {
+      return res.status(400).json({ error: "OTP expired" });
+    }
+
+    if (student.otp.code !== otp) {
+      return res.status(400).json({ error: "Incorrect OTP" });
+    }
+
+    // Update password
+    student.password = newPassword;
+    student.otp = undefined; // clear OTP
+    await student.save();
+
+    res.json({ message: "Password reset successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to reset password" });
+  }
+});
+
 
 
 module.exports = router;
