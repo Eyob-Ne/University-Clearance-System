@@ -19,13 +19,15 @@ const ResetPassword = () => {
   const [tokenValid, setTokenValid] = useState(false);
   const [studentEmail, setStudentEmail] = useState("");
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
+  const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
+
+  // Verify reset token on page load
   useEffect(() => {
     const verifyToken = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/student/auth/verify-reset-token/${token}`);
         setTokenValid(true);
-        setStudentEmail(res.data.email);
+        setStudentEmail(res.data.email); // display verified email
       } catch (err) {
         setTokenValid(false);
         setError("Invalid or expired reset link.");
@@ -34,9 +36,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
       }
     };
 
-    if (token) {
-      verifyToken();
-    }
+    if (token) verifyToken();
   }, [token]);
 
   const handleChange = (e) => {
@@ -62,13 +62,13 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
     }
 
     setLoading(true);
-
     try {
       const res = await axios.post(`${API_BASE_URL}/student/auth/reset-password/${token}`, {
         password: formData.password
       });
 
-      setSuccess(res.data.message);
+      setSuccess(res.data.message || "Password reset successful!");
+      // redirect after 3 seconds
       setTimeout(() => {
         navigate("/student/login");
       }, 3000);
@@ -79,6 +79,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
     }
   };
 
+  // Loader while verifying token
   if (verifying) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -90,6 +91,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
     );
   }
 
+  // Show if token is invalid/expired
   if (!tokenValid) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -110,35 +112,35 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
     );
   }
 
+  // Main reset form
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-lg border border-gray-200">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <Lock className="text-green-600" size={32} />
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Reset Your Password</h2>
-          <p className="text-gray-600">For account: {studentEmail}</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-1">Reset Your Password</h2>
+          <p className="text-gray-600 text-sm">Account: {studentEmail}</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-center">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4">
-            <CheckCircle className="inline w-5 h-5 mr-2" />
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-center flex items-center justify-center gap-2">
+            <CheckCircle className="w-5 h-5" />
             {success}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* New Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              New Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -146,10 +148,10 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 placeholder="Enter new password"
                 required
-                minLength="6"
+                minLength={6}
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
               />
               <button
                 type="button"
@@ -161,10 +163,9 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
             </div>
           </div>
 
+          {/* Confirm Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Confirm New Password
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
@@ -172,10 +173,10 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
                 placeholder="Confirm new password"
                 required
-                minLength="6"
+                minLength={6}
+                className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
               />
               <button
                 type="button"
@@ -202,10 +203,7 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
         </form>
 
         <div className="mt-6 text-center">
-          <Link
-            to="/student/login"
-            className="text-blue-600 hover:text-blue-700 font-medium"
-          >
+          <Link to="/student/login" className="text-blue-600 hover:text-blue-700 font-medium">
             Back to Login
           </Link>
         </div>
