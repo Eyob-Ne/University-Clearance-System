@@ -1,59 +1,59 @@
-const nodemailer = require("nodemailer");
+const axios = require("axios");
 
 const sendResetEmail = async (toEmail, otp) => {
   try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp-relay.brevo.com",
-      port: 587,
-      secure: false, // required for port 587
-      auth: {
-        user: process.env.BREVO_SMTP_USER,
-        pass: process.env.BREVO_SMTP_KEY,
-      },
-    });
+    await axios.post(
+      "https://api.brevo.com/v3/smtp/email",
+      {
+        sender: {
+          name: "Debre Birhan University",
+          email: "eyoba8315@gmail.com",
+        },
+        to: [{ email: toEmail }],
+        subject: "Your Password Reset OTP",
+        htmlContent: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color:#111;">
+            <h2>Password Reset Verification</h2>
+            <p>You requested to reset your password.</p>
 
-    const mailOptions = {
-      from: `"Debre Birhan  University" <eyoba8315@gmail.com>`,
-      to: toEmail,
-      subject: "Your Password Reset OTP",
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.6; color:#111;">
-          <h2>Password Reset Verification</h2>
-          <p>You requested to reset your password.</p>
+            <div style="
+              font-size: 28px;
+              font-weight: bold;
+              letter-spacing: 6px;
+              background: #f3f4f6;
+              padding: 15px;
+              text-align: center;
+              border-radius: 8px;
+              color: #2563eb;
+            ">
+              ${otp}
+            </div>
 
-          <p style="margin: 20px 0;">Use the OTP below to continue:</p>
+            <p style="margin-top:20px;">
+              ⏰ OTP expires in <b>15 minutes</b>.
+            </p>
 
-          <div style="
-            font-size: 28px;
-            font-weight: bold;
-            letter-spacing: 6px;
-            background: #f3f4f6;
-            padding: 15px;
-            text-align: center;
-            border-radius: 8px;
-            color: #2563eb;
-          ">
-            ${otp}
+            <hr />
+            <p style="font-size:12px;color:#666;">
+              University Clearance System
+            </p>
           </div>
+        `,
+      },
+      {
+        headers: {
+          "api-key": process.env.BREVO_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-          <p style="margin-top:20px;">
-            ⏰ This OTP expires in <b>15 minutes</b>.
-          </p>
-
-          <p>If you did not request this, please ignore this email.</p>
-
-          <hr />
-          <p style="font-size:12px;color:#666;">
-            University Clearance System
-          </p>
-        </div>
-      `,
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log("📧 OTP email sent via Brevo to:", toEmail);
+    console.log("📧 OTP email sent via Brevo API to:", toEmail);
   } catch (error) {
-    console.error("❌ OTP email sending failed:", error);
+    console.error(
+      "❌ OTP email sending failed:",
+      error.response?.data || error.message
+    );
     throw new Error("OTP email could not be sent");
   }
 };
