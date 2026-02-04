@@ -140,7 +140,7 @@ class PDFGenerator {
 
     // Clearance Statement
     doc.fillColor('#1f2937')
-       .fontSize(11)
+       .fontSize(12)
        .text('has successfully completed all academic requirements and', 50, detailsY + 90, { align: 'center' })
        .text('clearance procedures as verified by the university administration.', 50, detailsY + 105, { align: 'center' });
 
@@ -185,21 +185,6 @@ class PDFGenerator {
     doc.text('Verify at: mau.edu.et/verify', 50, qrCodeY + 110, { align: 'center' })
        .text(`Certificate ID: ${certificateId}`, 50, qrCodeY + 125, { align: 'center' });
 
-    // Footer
-    const footerY = doc.page.height - 80;
-    doc.strokeColor('#d1d5db')
-       .lineWidth(0.5)
-       .moveTo(100, footerY)
-       .lineTo(doc.page.width - 100, footerY)
-       .stroke();
-
-    doc.fillColor('#6b7280')
-       .fontSize(10)
-       .text('Digitally Signed by:', 50, footerY + 15, { align: 'center' })
-       .font('Helvetica-Bold')
-       .text('Registrar Office - Mekdela Amba University', 50, footerY + 30, { align: 'center' })
-       .font('Helvetica')
-       .text('This is an electronically generated document. No physical signature required.', 50, footerY + 50, { align: 'center' });
   }
 }
 

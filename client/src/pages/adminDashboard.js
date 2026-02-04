@@ -1450,7 +1450,7 @@ return (
 
     {/* FIXED FULL-HEIGHT SIDEBAR - EXTENDS WITH CONTENT */}
     <aside
-    className={`sticky top-20 left-0 self-start bg-gradient-to-b from-blue-700 via-blue-950 to-blue-950 text-white shadow-2xl flex flex-col transition-all duration-500 ease-in-out
+    className={`sticky top-0 left-0 self-start bg-gradient-to-b from-blue-700 via-blue-950 to-blue-950 text-white shadow-2xl flex flex-col transition-all duration-500 ease-in-out
     ${sidebarOpen ? "w-80" : "w-24"}
       `}
     >
@@ -1535,28 +1535,148 @@ return (
           <div className="flex-1"></div>
           
           {/* FOOTER - ALWAYS AT BOTTOM */}
-          <div className="p-4 border-t border-indigo-700/30">
-            {sidebarOpen ? (
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-between p-4 bg-red-900/20 hover:bg-red-500/30 rounded-xl transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <LogOut size={22} className="text-red-300" />
-                  <span className="font-medium">Logout</span>
-                </div>
-                <ArrowRight className="text-red-300" size={16} />
-              </button>
-            ) : (
-              <button
-                onClick={handleLogout}
-                className="w-12 h-12 bg-red-500/20 hover:bg-red-500/30 rounded-xl flex items-center justify-center"
-                title="Logout"
-              >
-                <LogOut size={22} className="text-red-300" />
-              </button>
-            )}
-          </div>
+      <div className="p-3 border-t border-white/10">
+  {sidebarOpen ? (
+    <button
+      onClick={handleLogout}
+      className="
+        w-full group relative overflow-hidden
+        flex items-center justify-between
+        px-4 py-3 rounded-xl
+        bg-gradient-to-r from-red-500 to-red-600
+        hover:from-red-600 hover:to-red-700
+        transition-all duration-500
+        shadow-lg shadow-red-500/20
+        hover:shadow-red-500/30
+        hover:-translate-y-0.5
+        before:absolute before:inset-0 
+        before:bg-gradient-to-r before:from-white/0 before:via-white/10 before:to-white/0
+        before:translate-x-[-100%] hover:before:translate-x-[100%]
+        before:transition-transform before:duration-700
+      "
+    >
+      {/* Animated background shine */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="
+          absolute -inset-full
+          bg-gradient-to-r from-transparent via-white/15 to-transparent
+          group-hover:translate-x-full
+          transition-transform duration-700
+        "></div>
+      </div>
+
+      <div className="relative flex items-center gap-3">
+        {/* Icon container */}
+        <div className="
+          relative w-9 h-9 rounded-lg
+          flex items-center justify-center
+          bg-white/20
+          group-hover:scale-110
+          transition-all duration-300
+          ring-1 ring-white/30
+        ">
+          <LogOut size={18} className="text-white relative z-10" />
+        </div>
+
+        <div className="text-left">
+          <span className="
+            font-semibold text-sm tracking-wide
+            text-white
+            block
+          ">
+            Logout
+          </span>
+          <span className="
+            text-xs text-white/80
+            opacity-0 group-hover:opacity-100
+            transition-opacity duration-300
+            block mt-0.5
+          ">
+            Sign out securely
+          </span>
+        </div>
+      </div>
+
+      {/* Animated arrow */}
+      <div className="relative">
+        <ArrowRight
+          size={16}
+          className="
+            text-white/90
+            group-hover:translate-x-1.5
+            transition-transform duration-300
+          "
+        />
+      </div>
+
+      {/* Ripple effect on click */}
+      <div className="
+        absolute inset-0
+        bg-white/10
+        opacity-0 group-active:opacity-100
+        transition-opacity duration-200
+      "></div>
+    </button>
+  ) : (
+    <button
+      onClick={handleLogout}
+      title="Logout"
+      className="
+        relative w-10 h-10 rounded-xl
+        flex items-center justify-center
+        bg-gradient-to-br from-red-500 to-red-600
+        hover:from-red-600 hover:to-red-700
+        shadow-lg shadow-red-500/20
+        transition-all duration-300
+        hover:scale-105
+        group
+        overflow-hidden
+      "
+    >
+      {/* Animated background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="
+          absolute inset-0
+          bg-gradient-to-r from-transparent via-white/15 to-transparent
+          -translate-x-full
+          group-hover:translate-x-full
+          transition-transform duration-500
+        "></div>
+      </div>
+
+      {/* Icon container */}
+      <div className="relative">
+        <LogOut size={18} className="text-white" />
+        
+        {/* Glow effect */}
+        <div className="
+          absolute -inset-1.5
+          bg-red-400/20 rounded-full
+          blur-sm
+          opacity-0 group-hover:opacity-100
+          transition-opacity duration-300
+        "></div>
+      </div>
+
+      {/* Simple tooltip */}
+      <div className="
+        absolute left-full ml-2
+        px-2 py-1 rounded-md
+        bg-gray-900 text-white text-xs
+        font-medium whitespace-nowrap
+        opacity-0 group-hover:opacity-100
+        transition-opacity duration-300
+        shadow-md
+        pointer-events-none
+        border border-gray-700
+        before:absolute before:left-[-4px] before:top-1/2 before:-translate-y-1/2
+        before:border-3 before:border-transparent before:border-r-gray-900
+      ">
+        Logout
+      </div>
+    </button>
+  )}
+</div>
         </nav>
       </div>
     </aside>

@@ -180,9 +180,73 @@ const fetchSystemStatus = async () => {
       </div>
     );
   }
+  
 
-  return (
-    <div className="max-w-4xl mx-auto mt-10 px-5">
+ return (
+  <div className="min-h-screen bg-gray-50">
+    {/* Full Width Header */}
+    <header className="
+  sticky top-0 z-50 w-full
+  bg-gradient-to-r from-blue-50/80 to-indigo-50/80
+  backdrop-blur-lg
+  border-b border-gray-200/60
+">
+  <div className="max-w-7xl mx-auto px-6">
+    <div className="h-16 flex items-center justify-between">
+
+      {/* Left: Title */}
+      <div>
+        <h1 className="
+          text-xl sm:text-2xl font-bold
+          bg-gradient-to-r from-blue-600 to-indigo-700
+          bg-clip-text text-transparent
+        ">
+          Student Clearance Portal
+        </h1>
+       
+      </div>
+
+      {/* Right: Logout */}
+      <button
+        onClick={() => {
+          localStorage.removeItem("studentToken");
+          window.location.href = "/student-login";
+        }}
+        className="
+          group inline-flex items-center gap-2
+          px-4 py-2 rounded-lg
+          bg-white/60 hover:bg-white
+          text-red-600 font-semibold
+          border border-red-100
+          shadow-sm hover:shadow-md
+          transition-all duration-200
+          active:scale-95
+        "
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4 group-hover:-rotate-12 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+          />
+        </svg>
+        <span className="hidden sm:inline">Sign out</span>
+      </button>
+
+    </div>
+  </div>
+</header>
+
+
+    {/* Main Content - Constrained to max-w-5xl */}
+    <main className="max-w-5xl mx-auto px-5 pb-10">
       {/* Header with Student Welcome */}
       <div className="max-w-7xl mx-auto">
         <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-2xl p-8 md:p-10 mb-8 overflow-hidden relative">
@@ -192,7 +256,7 @@ const fetchSystemStatus = async () => {
               <path fill="#FFFFFF" d="M45.7,-79.4C59.2,-73.3,70.6,-61.7,78.1,-48.3C85.6,-34.9,89.1,-19.8,88.4,-5.1C87.7,9.6,82.8,19.1,76.1,30.7C69.3,42.3,60.7,56,48.8,64.8C36.8,73.6,21.6,77.4,6,70.8C-9.6,64.2,-19.2,47.2,-30.9,35.6C-42.6,24.1,-56.5,18,-66.1,6.9C-75.8,-4.2,-81.3,-20.2,-77.8,-33.9C-74.3,-47.6,-61.8,-59.1,-47.8,-65C-33.8,-70.9,-18.6,-71.2,-2.2,-68.1C14.1,-65,28.2,-58.5,45.7,-79.4Z" transform="translate(100 100)" />
             </svg>
           </div>
-          
+      
           <div className="relative z-10">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 animate-fade-in">
               Welcome back, <span className="text-yellow-300">{student.fullName}!</span>
@@ -522,8 +586,9 @@ const fetchSystemStatus = async () => {
           </div>
         </div>
       )}
-    </div>
-  );
+    </main>
+  </div>
+);
 }
 
 // UPDATED StatusCard Component

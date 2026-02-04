@@ -148,19 +148,20 @@ router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
     const student = await Student.findOne({ email });
-    if (!student) {
-      return res.status(404).json({ error: "Student not found" });
-    }
+    if (!student) return res.status(404).json({ error: "Student not found" });
 
     // Generate 6-digit OTP
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = Date.now() + 15 * 60 * 1000; // 15 min
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    student.otp = { code: otpCode, expires: otpExpires };
+    student.otp = {
+      code: otp,
+      expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+    };
+
     await student.save();
 
     // Send OTP via email
-    await sendResetEmail(student.email, `Your OTP is: ${otpCode}`);
+    await sendResetEmail(student.email, otp);
 
     res.json({ message: "OTP sent to your email" });
   } catch (err) {
@@ -168,6 +169,8 @@ router.post("/forgot-password", async (req, res) => {
     res.status(500).json({ error: "Failed to send OTP" });
   }
 });
+
+
 router.post("/verify-otp", async (req, res) => {
   try {
     const { email, otp } = req.body;

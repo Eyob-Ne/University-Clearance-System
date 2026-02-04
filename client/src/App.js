@@ -27,7 +27,9 @@ function Header({ isMenuOpen, setIsMenuOpen, navItems, getNavLinkClass, mainCont
     '/dashboard/library',
     '/dashboard/dormitory',
     '/dashboard/finance',
-    '/dashboard/registrar'
+    '/dashboard/registrar',
+    '/admin-dashboard',
+    '/student-dashboard'
   ];
   
   // Check if current route is a staff dashboard route

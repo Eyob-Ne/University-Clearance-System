@@ -488,7 +488,7 @@ export default function StaffDashboard() {
                       className="flex items-center w-full px-5 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-150 rounded-lg"
                     >
                       <Key className="h-4 w-4 mr-3 text-gray-400 group-hover:text-blue-500" />
-                      Change Password
+                      Change profile
                     </button>
                   </div>
 
