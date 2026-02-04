@@ -1,13 +1,17 @@
 const axios = require("axios");
 
+if (!process.env.BREVO_SMTP_KEY) {
+  throw new Error("BREVO_SMTP_KEY is not defined in .env");
+}
+
 const sendResetEmail = async (toEmail, otp) => {
   try {
     await axios.post(
       "https://api.brevo.com/v3/smtp/email",
       {
         sender: {
-          name: "Debre Birhan University",
-          email: "eyoba8315@gmail.com",
+          name: process.env.EMAIL_SENDER_NAME || "Debre Birhan University",
+          email: process.env.EMAIL_SENDER_EMAIL || "eyoba8315@gmail.com",
         },
         to: [{ email: toEmail }],
         subject: "Your Password Reset OTP",
@@ -42,7 +46,7 @@ const sendResetEmail = async (toEmail, otp) => {
       },
       {
         headers: {
-          "api-key": process.env.BREVO_API_KEY,
+          "api-key": process.env.BREVO_SMTP_KEY,
           "Content-Type": "application/json",
         },
       }
