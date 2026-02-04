@@ -3,15 +3,17 @@ const nodemailer = require("nodemailer");
 const sendOtpEmail = async (toEmail, otp) => {
   try {
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp-relay.brevo.com",
+      port: 587,
+      secure: false, // required for port 587
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
+        user: process.env.BREVO_SMTP_USER,
+        pass: process.env.BREVO_SMTP_KEY,
+      },
     });
 
     const mailOptions = {
-      from: `"University Clearance System" <${process.env.EMAIL_USER}>`,
+      from: `"Debre Birhan  University" <eyoba8315@gmail.com>`,
       to: toEmail,
       subject: "Your Password Reset OTP",
       html: `
@@ -45,11 +47,11 @@ const sendOtpEmail = async (toEmail, otp) => {
             University Clearance System
           </p>
         </div>
-      `
+      `,
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("📧 OTP email sent to:", toEmail);
+    console.log("📧 OTP email sent via Brevo to:", toEmail);
   } catch (error) {
     console.error("❌ OTP email sending failed:", error);
     throw new Error("OTP email could not be sent");
