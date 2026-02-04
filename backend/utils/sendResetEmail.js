@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-const sendOtpEmail = async (toEmail, otp) => {
+const sendResetEmail = async (toEmail, otp) => {
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp-relay.brevo.com",
@@ -58,4 +58,4 @@ const sendOtpEmail = async (toEmail, otp) => {
   }
 };
 
-module.exports = sendOtpEmail;
+module.exports = sendResetEmail;
