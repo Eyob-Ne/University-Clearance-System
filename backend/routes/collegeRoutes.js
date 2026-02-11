@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const College = require('../models/College');
+const College = require('../models/college');
 const mongoose = require('mongoose');
 const Department = require('../models/department');
 const { adminProtect } = require('../middleware/auth');
