@@ -155,7 +155,7 @@ router.post("/forgot-password", async (req, res) => {
 
     student.otp = {
       code: otp,
-      expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+      expires: Date.now() + 5 * 60 * 1000, // 5 minutes
     };
 
     await student.save();

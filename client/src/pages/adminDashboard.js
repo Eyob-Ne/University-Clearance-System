@@ -25,6 +25,8 @@ import Swal from "sweetalert2";
 import "sweetalert2/dist/sweetalert2.min.css";
 import CSVUpload from "./CSVUpload";
 import CreateStaff from "./createStaff"; 
+import College from "./college"; 
+import CreateDepartment from "./createDepartment"; 
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -70,13 +72,18 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
         const studentsData = studentResponse.data.data || [];
         setStudents(studentsData);
         
-        // Extract departments from students as fallback
-        const uniqueDepts = [...new Set(studentsData.map(s => s.department))].filter(Boolean);
-        setDepartments(uniqueDepts.map(name => ({ 
-          name, 
-          studentCount: studentsData.filter(s => s.department === name).length 
-        })));
       }
+      const deptResponse = await axios.get(
+  `${API_BASE_URL}/admin/college-departments`,
+  {
+    headers: { Authorization: `Bearer ${token}` },
+  }
+);
+
+if (Array.isArray(deptResponse.data)) {
+  setDepartments(deptResponse.data);
+}
+
       
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -169,31 +176,32 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
 
   // Fetch departments
   const fetchDepartments = async () => {
-    try {
-      setDeptLoading(true);
-      const token = localStorage.getItem('adminToken');
-      
-      // This endpoint needs to be created in backend
-      const response = await axios.get(`${API_BASE_URL}/admin/departments`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.data.success) {
-        setDepartments(response.data.data || []);
-      } else {
-        // Fallback: extract departments from students
-        const uniqueDepts = [...new Set(students.map(s => s.department))].filter(Boolean);
-        setDepartments(uniqueDepts.map(name => ({ name, studentCount: students.filter(s => s.department === name).length })));
+  try {
+    setDeptLoading(true);
+
+    const token = localStorage.getItem("adminToken");
+
+    const response = await axios.get(
+      `${API_BASE_URL}/admin/college-departments`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
       }
-    } catch (error) {
-      console.error("Error fetching departments:", error);
-      // Fallback: extract departments from students
-      const uniqueDepts = [...new Set(students.map(s => s.department))].filter(Boolean);
-      setDepartments(uniqueDepts.map(name => ({ name, studentCount: students.filter(s => s.department === name).length })));
-    } finally {
-      setDeptLoading(false);
+    );
+
+    if (Array.isArray(response.data)) {
+      setDepartments(response.data);
+    } else if (response.data.success) {
+      setDepartments(response.data.data || []);
     }
-  };
+
+  } catch (error) {
+    console.error("Error fetching departments:", error);
+    setDepartments([]);
+  } finally {
+    setDeptLoading(false);
+  }
+};
+
 
   // Filter students based on search text (name and student ID only)
   const filteredStudents = students.filter(student =>
@@ -217,7 +225,9 @@ const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, view: "dashboard" },
     { id: "csv-upload", label: "Upload Students", icon: Upload, view: "csv-upload" }, 
-    { id: "staff", label: "Create Staff", icon: UserPlus, view: "create-staff" },
+    { id: "college", label: "Create college", icon: UserPlus, view: "college" },
+    { id: "createDepartment", label: "Create Department", icon: UserPlus, view: "createDepartment" },
+     { id: "staff", label: "Create Staff", icon: UserPlus, view: "create-staff" },
     { id: "manage-staff", label: "Manage Staff", icon: Users, view: "manage-staff" },
     { id: "students", label: "Students List", icon: Users, view: "students-list" },
     { id: "departments", label: "Departments", icon: Building, view: "departments" },
@@ -360,12 +370,16 @@ const handleDeleteStaff = async (staffId) => {
     switch (currentView) {
       case "create-staff":
         return <CreateStaff onBack={() => handleNavigation("dashboard", "dashboard")} />;
+         case "college":
+        return <College onBack={() => handleNavigation("dashboard", "dashboard")} />;
+         case "createDepartment":
+        return <CreateDepartment onBack={() => handleNavigation("dashboard", "dashboard")} />;
         case "clearance-settings":
   return <ClearanceSettings onBack={() => handleNavigation("dashboard", "dashboard")} />;
 
         case "csv-upload":
     return <CSVUpload onBack={() => handleNavigation("dashboard", "dashboard")}/>;
-      
+
       case "manage-staff":
         return (
           <div className="space-y-6">
@@ -708,32 +722,28 @@ const handleDeleteStaff = async (staffId) => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {departments.map((dept) => (
-                        <tr key={dept.name} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="flex items-center gap-3">
-                              <Building className="text-gray-400" size={20} />
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">{dept.name}</div>
-                                <div className="text-sm text-gray-500">Department</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-2xl font-bold text-blue-600">{dept.studentCount || 0}</div>
-                            <div className="text-sm text-gray-500">students</div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex gap-2">
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                ✓ {students.filter(s => s.department === dept.name && s.clearanceStatus === 'Approved').length}
-                              </span>
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                ⏱ {students.filter(s => s.department === dept.name && s.clearanceStatus === 'Pending').length}
-                              </span>
-                            </div>
-                          </td>
-                          
-                        </tr>
+                       <tr key={dept.departmentId}>
+                                      <td className="px-6 py-4">
+                                        <div className="text-sm font-medium">
+                                          {dept.departmentName}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                          {dept.collegeName}
+                                        </div>
+                                      </td>
+
+                                      <td className="px-6 py-4">
+                                        <div className="text-sm text-gray-600">
+                                          DB Managed
+                                        </div>
+                                      </td>
+
+                                      <td className="px-6 py-4">
+                                        <span className="text-sm text-blue-600">
+                                          Linked to system
+                                        </span>
+                                      </td>
+                                    </tr>
                       ))}
                     </tbody>
                   </table>
@@ -1446,16 +1456,16 @@ const handleDeleteStaff = async (staffId) => {
 };
 
 return (
-  <div className="flex min-h-screen bg-gray-50">
+  <div className="flex min-h-screen bg-gray-50 overflow-hidden"> {/* Added overflow-hidden to root */}
 
-    {/* FIXED FULL-HEIGHT SIDEBAR - EXTENDS WITH CONTENT */}
+    {/* FIXED FULL-HEIGHT SIDEBAR - NOT SCROLLABLE */}
     <aside
-    className={`sticky top-0 left-0 self-start bg-gradient-to-b from-blue-700 via-blue-950 to-blue-950 text-white shadow-2xl flex flex-col transition-all duration-500 ease-in-out
-    ${sidebarOpen ? "w-80" : "w-24"}
+      className={`fixed top-0 left-0 h-screen bg-gradient-to-b from-blue-700 via-blue-950 to-blue-950 text-white shadow-2xl flex flex-col transition-all duration-500 ease-in-out z-50
+        ${sidebarOpen ? "w-80" : "w-24"}
       `}
     >
       {/* SIDEBAR HEADER */}
-      <div className={`p-6 border-b border-blue-700/40 flex items-center ${!sidebarOpen ? "justify-center" : "justify-between"}`}>
+      <div className={`p-4 border-b border-blue-700/40 flex items-center ${!sidebarOpen ? "justify-center" : "justify-between"} shrink-0`}>
         <div className={`flex items-center ${sidebarOpen ? "gap-4" : "flex-col gap-2"}`}>
           <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center shadow-lg">
             <BarChart3 className="text-purple-300" size={28} />
@@ -1480,7 +1490,7 @@ return (
 
       {/* COLLAPSE BUTTON */}
       {!sidebarOpen && (
-        <div className="p-4 border-b border-indigo-700/20 flex justify-center">
+        <div className="p-4 border-b border-indigo-700/20 flex justify-center shrink-0">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center"
@@ -1491,10 +1501,9 @@ return (
       )}
 
       {/* NAVIGATION - FLEXIBLE HEIGHT */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden"> {/* Allow internal scrolling if needed */}
         <nav className="h-full flex flex-col">
           <div className="px-3 py-6 space-y-3">
-
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeNav === item.id;
@@ -1533,159 +1542,110 @@ return (
 
           {/* SPACER TO PUSH FOOTER DOWN */}
           <div className="flex-1"></div>
-          
-          {/* FOOTER - ALWAYS AT BOTTOM */}
-      <div className="p-3 border-t border-white/10">
-  {sidebarOpen ? (
-    <button
-      onClick={handleLogout}
-      className="
-        w-full group relative overflow-hidden
-        flex items-center justify-between
-        px-4 py-3 rounded-xl
-        bg-gradient-to-r from-red-500 to-red-600
-        hover:from-red-600 hover:to-red-700
-        transition-all duration-500
-        shadow-lg shadow-red-500/20
-        hover:shadow-red-500/30
-        hover:-translate-y-0.5
-        before:absolute before:inset-0 
-        before:bg-gradient-to-r before:from-white/0 before:via-white/10 before:to-white/0
-        before:translate-x-[-100%] hover:before:translate-x-[100%]
-        before:transition-transform before:duration-700
-      "
-    >
-      {/* Animated background shine */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="
-          absolute -inset-full
-          bg-gradient-to-r from-transparent via-white/15 to-transparent
-          group-hover:translate-x-full
-          transition-transform duration-700
-        "></div>
-      </div>
-
-      <div className="relative flex items-center gap-3">
-        {/* Icon container */}
-        <div className="
-          relative w-9 h-9 rounded-lg
-          flex items-center justify-center
-          bg-white/20
-          group-hover:scale-110
-          transition-all duration-300
-          ring-1 ring-white/30
-        ">
-          <LogOut size={18} className="text-white relative z-10" />
-        </div>
-
-        <div className="text-left">
-          <span className="
-            font-semibold text-sm tracking-wide
-            text-white
-            block
-          ">
-            Logout
-          </span>
-          <span className="
-            text-xs text-white/80
-            opacity-0 group-hover:opacity-100
-            transition-opacity duration-300
-            block mt-0.5
-          ">
-            Sign out securely
-          </span>
-        </div>
-      </div>
-
-      {/* Animated arrow */}
-      <div className="relative">
-        <ArrowRight
-          size={16}
-          className="
-            text-white/90
-            group-hover:translate-x-1.5
-            transition-transform duration-300
-          "
-        />
-      </div>
-
-      {/* Ripple effect on click */}
-      <div className="
-        absolute inset-0
-        bg-white/10
-        opacity-0 group-active:opacity-100
-        transition-opacity duration-200
-      "></div>
-    </button>
-  ) : (
-    <button
-      onClick={handleLogout}
-      title="Logout"
-      className="
-        relative w-10 h-10 rounded-xl
-        flex items-center justify-center
-        bg-gradient-to-br from-red-500 to-red-600
-        hover:from-red-600 hover:to-red-700
-        shadow-lg shadow-red-500/20
-        transition-all duration-300
-        hover:scale-105
-        group
-        overflow-hidden
-      "
-    >
-      {/* Animated background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="
-          absolute inset-0
-          bg-gradient-to-r from-transparent via-white/15 to-transparent
-          -translate-x-full
-          group-hover:translate-x-full
-          transition-transform duration-500
-        "></div>
-      </div>
-
-      {/* Icon container */}
-      <div className="relative">
-        <LogOut size={18} className="text-white" />
-        
-        {/* Glow effect */}
-        <div className="
-          absolute -inset-1.5
-          bg-red-400/20 rounded-full
-          blur-sm
-          opacity-0 group-hover:opacity-100
-          transition-opacity duration-300
-        "></div>
-      </div>
-
-      {/* Simple tooltip */}
-      <div className="
-        absolute left-full ml-2
-        px-2 py-1 rounded-md
-        bg-gray-900 text-white text-xs
-        font-medium whitespace-nowrap
-        opacity-0 group-hover:opacity-100
-        transition-opacity duration-300
-        shadow-md
-        pointer-events-none
-        border border-gray-700
-        before:absolute before:left-[-4px] before:top-1/2 before:-translate-y-1/2
-        before:border-3 before:border-transparent before:border-r-gray-900
-      ">
-        Logout
-      </div>
-    </button>
-  )}
-</div>
         </nav>
+      </div>
+
+      {/* FOOTER - ALWAYS AT BOTTOM */}
+      <div className="p-3 border-t border-white/10 shrink-0">
+        {sidebarOpen ? (
+          <button
+            onClick={handleLogout}
+            className="
+              w-full group relative overflow-hidden
+              flex items-center justify-between
+              px-4 py-3 rounded-xl
+              bg-gradient-to-r from-red-500 to-red-600
+              hover:from-red-600 hover:to-red-700
+              transition-all duration-500
+              shadow-lg shadow-red-500/20
+              hover:shadow-red-500/30
+              hover:-translate-y-0.5
+            "
+          >
+            <div className="relative flex items-center gap-3">
+              <div className="
+                relative w-9 h-9 rounded-lg
+                flex items-center justify-center
+                bg-white/20
+                group-hover:scale-110
+                transition-all duration-300
+                ring-1 ring-white/30
+              ">
+                <LogOut size={18} className="text-white relative z-10" />
+              </div>
+
+              <div className="text-left">
+                <span className="
+                  font-semibold text-sm tracking-wide
+                  text-white
+                  block
+                ">
+                  Logout
+                </span>
+                <span className="
+                  text-xs text-white/80
+                  opacity-0 group-hover:opacity-100
+                  transition-opacity duration-300
+                  block mt-0.5
+                ">
+                  Sign out securely
+                </span>
+              </div>
+            </div>
+
+            <ArrowRight
+              size={16}
+              className="
+                text-white/90
+                group-hover:translate-x-1.5
+                transition-transform duration-300
+              "
+            />
+          </button>
+        ) : (
+          <button
+            onClick={handleLogout}
+            title="Logout"
+            className="
+              relative w-10 h-10 rounded-xl mx-auto
+              flex items-center justify-center
+              bg-gradient-to-br from-red-500 to-red-600
+              hover:from-red-600 hover:to-red-700
+              shadow-lg shadow-red-500/20
+              transition-all duration-300
+              hover:scale-105
+              group
+            "
+          >
+            <LogOut size={18} className="text-white" />
+            
+            <div className="
+              absolute left-full ml-2
+              px-2 py-1 rounded-md
+              bg-gray-900 text-white text-xs
+              font-medium whitespace-nowrap
+              opacity-0 group-hover:opacity-100
+              transition-opacity duration-300
+              shadow-md
+              pointer-events-none
+            ">
+              Logout
+            </div>
+          </button>
+        )}
       </div>
     </aside>
 
-    {/* MAIN CONTENT - DETERMINES OVERALL HEIGHT */}
-    <div className="flex-1 p-6 bg-gradient-to-br from-gray-50 via-white to-gray-100 min-h-screen">
-      {renderContent()}
+    {/* MAIN CONTENT - SCROLLABLE AREA */}
+    <div 
+      className={`flex-1 min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 overflow-y-auto transition-all duration-500 ease-in-out
+        ${sidebarOpen ? "ml-80" : "ml-24"}
+      `}
+    >
+      <div className="p-6">
+        {renderContent()}
+      </div>
     </div>
-
   </div>
 );
 

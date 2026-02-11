@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route, NavLink, useLocation } from "react-router-dom";
-import { FaHome, FaUserGraduate, FaUserShield, FaYoutube,FaPhone, FaEnvelope, FaMapMarkerAlt, FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaTelegram, FaBars, FaTimes } from 'react-icons/fa';
+import { FaHome, FaUserGraduate, FaUserShield,FaYoutube,FaPhone, FaEnvelope, FaMapMarkerAlt, FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaTelegram, FaBars, FaTimes } from 'react-icons/fa';
 
 import Home from "./pages/home";
 import StudentRegister from "./pages/studentRegister";
@@ -13,8 +13,10 @@ import StaffAdminLogin from "./pages/StaffAdminLogin";
 import ResetPassword from "./pages/resetPassword";
 import Verification from "./pages/verification";
 import Upload from "./pages/CSVUpload";
-
+import College from "./pages/college";
+import CreateDepartment from "./pages/createDepartment";
 import "./App.css";
+
 
 // Create a separate component for Header to use useLocation hook
 function Header({ isMenuOpen, setIsMenuOpen, navItems, getNavLinkClass, mainContainerClass }) {
@@ -112,7 +114,8 @@ function Footer({ mainContainerClass }) {
     '/dashboard/library',
     '/dashboard/dormitory',
     '/dashboard/finance',
-    '/dashboard/registrar'
+    '/dashboard/registrar',
+    '/admin-dashboard'
   ];
   
   // Check if current route is a staff dashboard route
@@ -266,6 +269,8 @@ function App() {
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/verify/:certificateCode" element={<Verification />} />
             <Route path="/student-upload" element={<Upload />} />
+            <Route path="/college" element={<College />} />
+            <Route path="/createDepartment" element={<CreateDepartment />} />
           </Routes>
         </main>
 

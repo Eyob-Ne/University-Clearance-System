@@ -11,6 +11,8 @@ const staffRoutes = require("./routes/staffRoutes");
 const certificateRoutes = require("./routes/certificateRoutes");
 const studentRegistrationRoutes = require('./routes/studentRegistration');
 const systemRoutes = require("./routes/systemRoutes");
+const collegeRoutes = require("./routes/collegeRoutes");
+const departmentRoutes = require('./routes/departmentRoutes');
 const app = express();
 
 // Middleware
@@ -37,6 +39,8 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/certificates", certificateRoutes);
 app.use("/api/students", studentRegistrationRoutes);
 app.use("/api/system", systemRoutes);
+app.use('/api/admin', collegeRoutes);
+app.use('/api/admin', departmentRoutes);
 // Get port from Render environment or use default
 const PORT = process.env.PORT || 5000;
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect  } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiUserPlus, FiCheck, FiX, FiLoader } from "react-icons/fi";
 import { Eye, EyeOff } from 'lucide-react';
@@ -26,15 +26,37 @@ export default function CreateStaff() {
     "Department Head",
   ];
 
-  const departments = [
-    "Software Engineering",
-    "Computer Science",
-    "Information Technology",
-    "Plant Science",
-    "Biology",
-    "Chemistry",
-    "Animal Science",
-  ];
+  const [departments, setDepartments] = useState([]);
+const [loadingDepartments, setLoadingDepartments] = useState(false);
+
+useEffect(() => {
+  if (formData.role === "Department Head") {
+    fetchDepartments();
+  }
+}, [formData.role]);
+
+
+const fetchDepartments = async () => {
+  setLoadingDepartments(true);
+
+  try {
+    const res = await axios.get(
+      `${API_BASE_URL}/admin/college-departments`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("adminToken")}`,
+        },
+      }
+    );
+
+    setDepartments(res.data || []);
+  } catch (error) {
+    console.error("Failed to fetch departments:", error);
+  } finally {
+    setLoadingDepartments(false);
+  }
+};
+
 
   const API_BASE_URL = process.env.REACT_APP_API_BASE_URL + "/api";
   
@@ -235,11 +257,17 @@ export default function CreateStaff() {
                 disabled={loading}
               >
                 <option value="">Select Department</option>
-                {departments.map((dep) => (
-                  <option key={dep} value={dep}>
-                    {dep}
-                  </option>
-                ))}
+                {loadingDepartments ? (
+  <option>Loading departments...</option>
+) : (
+  departments.map((dep) => (
+    <option key={dep._id} value={dep.departmentName}>
+  {dep.departmentName}
+</option>
+
+  ))
+)}
+
               </select>
             </div>
           )}

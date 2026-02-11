@@ -87,13 +87,22 @@ router.get('/verify/:studentId', async (req, res) => {
  */
 router.post('/simple-register', async (req, res) => {
   try {
-    const { studentId, password } = req.body;
+    const { studentId, email, password } = req.body;
 
     // Validate input
-    if (!studentId || !password) {
+    if (!studentId || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Student ID and password are required'
+        message: 'Student ID, email, and password are required'
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if (!emailRegex.test(String(email).toLowerCase())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please enter a valid email address'
       });
     }
 
@@ -124,7 +133,22 @@ router.post('/simple-register', async (req, res) => {
       });
     }
 
-    // Update student with password
+    // Check if email is already used by another active account
+    const existingEmail = await Student.findOne({
+      email: email.toLowerCase().trim(),
+      accountStatus: 'Active',
+      _id: { $ne: student._id } // Exclude current student
+    });
+
+    if (existingEmail) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email address is already registered. Please use a different email.'
+      });
+    }
+
+    // Update student with email and password
+    student.email = email.toLowerCase().trim();
     student.password = password;
     student.accountStatus = 'Active';
     student.emailVerified = true;
@@ -137,6 +161,7 @@ router.post('/simple-register', async (req, res) => {
       { 
         id: student._id,
         studentId: student.studentId,
+        email: student.email,
         role: 'student'
       },
       process.env.JWT_SECRET,
@@ -150,6 +175,7 @@ router.post('/simple-register', async (req, res) => {
       student: {
         studentId: student.studentId,
         fullName: student.fullName,
+        email: student.email,
         department: student.department,
         year: student.year
       }
@@ -157,6 +183,15 @@ router.post('/simple-register', async (req, res) => {
 
   } catch (error) {
     console.error('Simple register error:', error);
+    
+    // Handle duplicate key error (email)
+    if (error.code === 11000 && error.keyPattern && error.keyPattern.email) {
+      return res.status(409).json({
+        success: false,
+        message: 'Email address is already registered. Please use a different email.'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Server error creating account',

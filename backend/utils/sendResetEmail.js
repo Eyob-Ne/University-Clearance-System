@@ -35,7 +35,7 @@ const sendResetEmail = async (toEmail, otp) => {
           </div>
 
           <p style="margin-top:20px;">
-            ⏰ This OTP expires in <b>15 minutes</b>.
+            ⏰ This OTP expires in <b>5 minutes</b>.
           </p>
 
           <p>If you did not request this, please ignore this email.</p>

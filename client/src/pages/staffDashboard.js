@@ -21,7 +21,9 @@ import {
   Key,
   UserCircle,
   AlertCircle,
-  Info
+  Info,
+  Search,
+  Filter
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -46,10 +48,14 @@ export default function StaffDashboard() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [profileErrors, setProfileErrors] = useState({});
   
-  // NEW: Reject reason states
+  // Search and Filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); // "all", "Pending", "Cleared", "Rejected"
+  
+  // Reject reason states
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [rejectMode, setRejectMode] = useState("single"); // "single" or "bulk"
+  const [rejectMode, setRejectMode] = useState("single");
   const [targetStudentId, setTargetStudentId] = useState(null);
   const [rejectReasonLoading, setRejectReasonLoading] = useState(false);
   
@@ -108,6 +114,40 @@ export default function StaffDashboard() {
     return "text-amber-700 bg-amber-50 border border-amber-200";
   };
 
+  // Highlight search terms
+  const highlightText = (text, search) => {
+    if (!search || !text) return text;
+    try {
+      const parts = text.split(new RegExp(`(${search})`, 'gi'));
+      return parts.map((part, index) => 
+        part.toLowerCase() === search.toLowerCase() 
+          ? <span key={index} className="bg-yellow-200 font-semibold px-1 rounded">{part}</span>
+          : part
+      );
+    } catch (e) {
+      return text;
+    }
+  };
+
+  // Filter students based on search term and status filter
+  const filteredStudents = students.filter(student => {
+    // First apply status filter
+    if (statusFilter !== "all") {
+      const currentStatus = student.clearance?.[staffSection] || "Pending";
+      if (currentStatus !== statusFilter) return false;
+    }
+    
+    // Then apply search term if exists
+    if (!searchTerm.trim()) return true;
+    
+    const term = searchTerm.toLowerCase().trim();
+    return (
+      student.studentId?.toLowerCase().includes(term) ||
+      student.fullName?.toLowerCase().includes(term) ||
+      student.department?.toLowerCase().includes(term)
+    );
+  });
+
   // --- Data & Auth Functions ---
 
   useEffect(() => {
@@ -120,7 +160,7 @@ export default function StaffDashboard() {
     if (staffProfile) {
       setProfileData(prev => ({
         ...prev,
-        fullName: staffProfile.name || "",
+        fullName: staffProfile.name || staffProfile.fullName || "",
         email: staffProfile.email || ""
       }));
     }
@@ -238,7 +278,7 @@ export default function StaffDashboard() {
       if (response.data.success) {
         const updatedProfile = {
           ...staffProfile,
-          fullName:response.data.data.name || response.data.data.fullName,
+          fullName: response.data.data.name || response.data.data.fullName,
           email: response.data.data.email,
           role: response.data.data.role,
           department: response.data.data.department
@@ -247,7 +287,7 @@ export default function StaffDashboard() {
 
         setProfileData(prev => ({
           ...prev,
-          fullName: response.data.data.fullName,
+          fullName: response.data.data.fullName || response.data.data.name,
           email: response.data.data.email
         }));
 
@@ -311,7 +351,6 @@ export default function StaffDashboard() {
     
     const previousStudents = [...students]; 
     
-    // Optimistically update UI
     setStudents(prev => prev.map(s => {
       if (selectedIds.includes(s._id)) {
         return { 
@@ -348,7 +387,7 @@ export default function StaffDashboard() {
     }
   };
 
-  // --- NEW: Rejection Functions ---
+  // --- Rejection Functions ---
 
   const openRejectModal = (mode, studentId = null) => {
     setRejectMode(mode);
@@ -394,11 +433,16 @@ export default function StaffDashboard() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedIds.length === students.length) {
+    if (selectedIds.length === filteredStudents.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(students.map((s) => s._id));
+      setSelectedIds(filteredStudents.map((s) => s._id));
     }
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
   };
 
   // --- Render Logic ---
@@ -449,7 +493,7 @@ export default function StaffDashboard() {
                 className="flex items-center space-x-3 px-4 py-2.5 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 rounded-xl border border-blue-100 transition-all duration-200 shadow-sm hover:shadow"
               >
                 <div className="text-right">
-                  <div className="font-semibold text-gray-900">{staffProfile?.fullName}</div>
+                  <div className="font-semibold text-gray-900">{staffProfile?.fullName || staffProfile?.name}</div>
                   <div className="text-sm text-gray-600">{staffProfile?.role}</div>
                 </div>
                 <div className={`p-2 rounded-lg ${getSectionColor()}`}>
@@ -467,16 +511,16 @@ export default function StaffDashboard() {
                   <div className="px-5 py-4 border-b border-gray-100">
                     <div className="flex items-center space-x-3">
                       <div className="flex-shrink-0 w-12 h-12 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-white font-semibold text-lg">
-                        {staffProfile?.fullName?.charAt(0)}
+                        {staffProfile?.fullName?.charAt(0) || staffProfile?.name?.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-semibold text-gray-900 text-base">{staffProfile?.fullName}</div>
+                        <div className="font-semibold text-gray-900 text-base">{staffProfile?.fullName || staffProfile?.name}</div>
                         <div className="text-sm text-gray-500">{staffProfile?.email}</div>
                         <div
                           className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-2 ${getSectionColor()}`}
                         >
                           <Building className="h-3 w-3 mr-1" />
-                          {staffProfile?.department}
+                          {staffProfile?.department || staffProfile?.role}
                         </div>
                       </div>
                     </div>
@@ -551,7 +595,100 @@ export default function StaffDashboard() {
           </div>
         </div>
 
-        {/* Bulk Actions Panel - UPDATED */}
+        {/* Search and Filter Section */}
+        <div className="mb-6 bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="p-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+            <div className="flex items-center space-x-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Search className="h-5 w-5 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">Search and Filter Students</h3>
+            </div>
+          </div>
+          
+          <div className="p-4">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search Input */}
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by name, ID, or department..."
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <XCircle className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filter Dropdown */}
+              <div className="md:w-64">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Cleared">Cleared</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+
+              {/* Clear Filters Button */}
+              {(searchTerm || statusFilter !== "all") && (
+                <button
+                  onClick={clearFilters}
+                  className="px-4 py-3 text-sm text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all duration-200 flex items-center justify-center"
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Clear Filters
+                </button>
+              )}
+            </div>
+
+            {/* Filter and Search Summary */}
+            {(searchTerm || statusFilter !== "all") && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600">
+                    {statusFilter !== "all" && (
+                      <span className="inline-flex items-center mr-3">
+                        <span className="font-medium">Status:</span>
+                        <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-medium ${
+                          statusFilter === "Cleared" ? "bg-emerald-100 text-emerald-700" :
+                          statusFilter === "Rejected" ? "bg-rose-100 text-rose-700" :
+                          "bg-amber-100 text-amber-700"
+                        }`}>
+                          {statusFilter}
+                        </span>
+                      </span>
+                    )}
+                    {searchTerm && (
+                      <span>
+                        <span className="font-medium">Search:</span> "{searchTerm}"
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Found <span className="font-semibold text-blue-600">{filteredStudents.length}</span> student{filteredStudents.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Bulk Actions Panel */}
         {selectedIds.length > 0 && (
           <div className="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 shadow-lg border border-blue-200 transform transition-all duration-300">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
@@ -601,7 +738,7 @@ export default function StaffDashboard() {
               <h2 className="text-xl font-bold text-gray-900">Student Clearance Requests</h2>
               <div className="flex items-center space-x-2">
                 <span className="text-sm text-gray-600">
-                  Showing {students.length} student{students.length !== 1 ? 's' : ''}
+                  Showing {filteredStudents.length} of {students.length} student{students.length !== 1 ? 's' : ''}
                 </span>
               </div>
             </div>
@@ -615,7 +752,7 @@ export default function StaffDashboard() {
                     <div className="flex items-center">
                       <input
                         type="checkbox"
-                        checked={students.length > 0 && selectedIds.length === students.length}
+                        checked={filteredStudents.length > 0 && selectedIds.length === filteredStudents.length}
                         onChange={toggleSelectAll}
                         className="h-4 w-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
                       />
@@ -639,20 +776,38 @@ export default function StaffDashboard() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
-                {students.length === 0 ? (
+                {filteredStudents.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="px-6 py-12 text-center">
                       <div className="flex flex-col items-center">
                         <div className="p-4 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full mb-4">
-                          <CheckCircle className="h-8 w-8 text-gray-400" />
+                          {searchTerm || statusFilter !== "all" ? (
+                            <Search className="h-8 w-8 text-gray-400" />
+                          ) : (
+                            <CheckCircle className="h-8 w-8 text-gray-400" />
+                          )}
                         </div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
-                        <p className="text-gray-600">No pending clearance requests at the moment.</p>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          {searchTerm || statusFilter !== "all" ? 'No matching students found' : 'All caught up!'}
+                        </h3>
+                        <p className="text-gray-600">
+                          {searchTerm || statusFilter !== "all" 
+                            ? 'Try adjusting your search or filter criteria.'
+                            : 'No pending clearance requests at the moment.'}
+                        </p>
+                        {(searchTerm || statusFilter !== "all") && (
+                          <button
+                            onClick={clearFilters}
+                            className="mt-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            Clear All Filters
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  students.map((s) => {
+                  filteredStudents.map((s) => {
                     const currentStatus = s.clearance?.[staffSection] || "Pending";
                     const isSelected = selectedIds.includes(s._id);
                     const isDisabled = updatingId === s._id;
@@ -674,14 +829,18 @@ export default function StaffDashboard() {
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900 font-mono">{s.studentId}</div>
+                          <div className="text-sm font-medium text-gray-900 font-mono">
+                            {searchTerm ? highlightText(s.studentId, searchTerm) : s.studentId}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="text-sm font-medium text-gray-900">{s.fullName}</div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {searchTerm ? highlightText(s.fullName, searchTerm) : s.fullName}
+                          </div>
                         </td>
                         <td className="px-6 py-4 hidden md:table-cell">
                           <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            {s.department}
+                            {searchTerm ? highlightText(s.department, searchTerm) : s.department}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -751,7 +910,7 @@ export default function StaffDashboard() {
         </div>
       </div>
 
-      {/* NEW: Reject Reason Modal */}
+      {/* Reject Reason Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
@@ -844,17 +1003,15 @@ export default function StaffDashboard() {
         </div>
       )}
 
-    {/* Profile Modal */}
+      {/* Profile Modal */}
       {showProfileModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            {/* Background overlay */}
             <div 
               className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75 backdrop-blur-sm" 
               onClick={closeProfileModal}
             />
 
-            {/* Modal panel */}
             <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="absolute top-4 right-4">
                 <button
@@ -865,7 +1022,6 @@ export default function StaffDashboard() {
                 </button>
               </div>
 
-              {/* Header */}
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-8">
                 <div className="flex items-center space-x-3">
                   <div className="p-2.5 bg-white/20 rounded-xl backdrop-blur-sm">
@@ -879,7 +1035,6 @@ export default function StaffDashboard() {
               </div>
 
               <div className="px-6 py-6">
-                {/* Personal Information Section */}
                 <div className="mb-8">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <User className="h-5 w-5 mr-2 text-blue-500" />
@@ -938,7 +1093,6 @@ export default function StaffDashboard() {
                   </div>
                 </div>
 
-                {/* Security Section */}
                 <div className="pt-6 border-t border-gray-200">
                   <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                     <Shield className="h-5 w-5 mr-2 text-blue-500" />
@@ -1051,7 +1205,6 @@ export default function StaffDashboard() {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div className="mt-8 pt-6 border-t border-gray-200">
                   <div className="flex justify-end space-x-3">
                     <button
