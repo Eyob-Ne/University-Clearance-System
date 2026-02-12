@@ -29,6 +29,10 @@ router.post("/start", protectStudent, checkClearanceWindow, async (req, res) => 
             return res.status(404).json({ message: "Student not found." });
         }
 
+        // ✅ FIXED: Don't create system pending entries - start with empty array
+        // The approvalHistory should only contain actual actions, not initial states
+        const approvalHistory = []; // Empty array instead of 6 system entries
+
         // Create clearance
         clearance = await Clearance.create({
             studentId,
@@ -40,9 +44,10 @@ router.post("/start", protectStudent, checkClearanceWindow, async (req, res) => 
             registrarStatus: "Pending",
             cafeteriaStatus: "Pending",
             overallStatus: "Pending",
+            approvalHistory // Now empty array
         });
 
-        // Update student's clearanceStatus
+        // Update student's clearance status
         student.clearanceStatus = "Pending";
         await student.save();
 
@@ -58,21 +63,29 @@ router.post("/start", protectStudent, checkClearanceWindow, async (req, res) => 
     }
 });
 
-// UPDATED: Get student clearance with reasons
+
+// ------------------------------------------
+// Get student clearance (with history)
+// ------------------------------------------
 router.get("/me", protectStudent, async (req, res) => {
     try {
         const studentId = req.student._id;
-        
+
         const clearance = await Clearance.findOne({ studentId })
             .populate("studentId", "studentId fullName department year");
 
         if (!clearance) {
-            return res.status(404).json({ 
-                message: "No clearance record found. Please start clearance process first." 
+            return res.status(404).json({
+                message: "No clearance record found. Please start clearance process first."
             });
         }
 
-        // UPDATED: Include clearance reasons in response
+        // ✅ FIXED: Filter out any system-generated pending entries from the history
+        // This ensures old records don't show the unwanted entries
+        const filteredHistory = clearance.approvalHistory.filter(entry => 
+            !(entry.approvedBy === "System" && entry.status === "Pending")
+        );
+
         res.json({
             clearance: {
                 departmentStatus: clearance.departmentStatus,
@@ -84,7 +97,7 @@ router.get("/me", protectStudent, async (req, res) => {
                 overallStatus: clearance.overallStatus,
                 createdAt: clearance.createdAt
             },
-            // NEW: Add clearance reasons to response
+
             clearanceReasons: {
                 department: clearance.departmentReason || "",
                 library: clearance.libraryReason || "",
@@ -92,7 +105,10 @@ router.get("/me", protectStudent, async (req, res) => {
                 finance: clearance.financeReason || "",
                 registrar: clearance.registrarReason || "",
                 cafeteria: clearance.cafeteriaReason || ""
-            }
+            },
+
+            // ✅ Return filtered history instead of raw array
+            approvalHistory: filteredHistory || []
         });
 
     } catch (err) {

@@ -70,77 +70,83 @@ router.put("/clear/:studentId", staffProtect, async (req, res) => {
   try {
     const staff = req.staff;
     const { studentId } = req.params;
-    let { section, status, reason } = req.body; // ADDED reason
+    let { section, status, reason } = req.body;
 
     if (!status) return res.status(400).json({ message: "Status is required" });
     if (!["Pending", "Cleared", "Rejected"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
 
-    // NEW: If rejecting, require a reason
     if (status === "Rejected" && (!reason || reason.trim() === "")) {
       return res.status(400).json({ message: "Reason is required when rejecting" });
     }
 
-    // Find clearance record
     const clearance = await Clearance.findOne({ studentId });
     if (!clearance) return res.status(404).json({ message: "Clearance record not found" });
 
     let fieldToUpdate = "";
     let reasonField = "";
-    
+    let departmentLabel = "";
+
     if (staff.role && staff.role.toLowerCase().includes("department")) {
       fieldToUpdate = "departmentStatus";
       reasonField = "departmentReason";
+      departmentLabel = staff.department || "Department";
     } else {
-      // Map section to field name in Clearance model
       const fieldMap = {
-        "library": "libraryStatus",
-        "dormitory": "dormStatus", 
-        "finance": "financeStatus",
-        "registrar": "registrarStatus",
-        "cafeteria": "cafeteriaStatus"
+        library: "libraryStatus",
+        dormitory: "dormStatus",
+        finance: "financeStatus",
+        registrar: "registrarStatus",
+        cafeteria: "cafeteriaStatus"
       };
-      
+
       const reasonMap = {
-        "library": "libraryReason",
-        "dormitory": "dormReason", 
-        "finance": "financeReason",
-        "registrar": "registrarReason",
-        "cafeteria": "cafeteriaReason"
+        library: "libraryReason",
+        dormitory: "dormReason",
+        finance: "financeReason",
+        registrar: "registrarReason",
+        cafeteria: "cafeteriaReason"
       };
-      
+
       fieldToUpdate = fieldMap[section];
       reasonField = reasonMap[section];
-      
+      departmentLabel = section;
+
       if (!fieldToUpdate) {
         return res.status(400).json({ message: "Invalid section for update" });
       }
     }
 
-    // Update the specific field
+    // update status
     clearance[fieldToUpdate] = status;
-    
-    // NEW: Handle rejection reason
-    if (status === "Rejected" && reason) {
+
+    if (status === "Rejected") {
       clearance[reasonField] = reason.trim();
-    } else if (status !== "Rejected") {
-      // Clear reason if status is not Rejected
+    } else {
       clearance[reasonField] = "";
     }
 
-    // Save will trigger the pre-save hook to update overallStatus
+    // ⭐ ADD APPROVAL HISTORY
+    clearance.approvalHistory.push({
+      department: departmentLabel,
+      approvedBy: staff.name || staff.email || "Staff",
+      status,
+      reason: status === "Rejected" ? reason : "",
+      date: new Date()
+    });
+
     await clearance.save();
 
-    // Also update the student's clearanceStatus to match overallStatus
     await Student.findByIdAndUpdate(studentId, {
       clearanceStatus: clearance.overallStatus
     });
 
-    res.json({ 
-      message: "Clearance updated successfully", 
-      clearance 
+    res.json({
+      message: "Clearance updated successfully",
+      clearance
     });
+
   } catch (err) {
     console.error("PUT /api/staff/clear error:", err);
     res.status(500).json({ message: "Server error" });
@@ -159,86 +165,86 @@ router.put("/clear/:studentId", staffProtect, async (req, res) => {
 router.put("/bulk-update", staffProtect, async (req, res) => {
   try {
     const staff = req.staff;
-    const { ids, section, status, reason } = req.body; // ADDED reason
+    const { ids, section, status, reason } = req.body;
 
     if (!ids || ids.length === 0) {
       return res.status(400).json({ message: "No students selected" });
     }
+
     if (!["Cleared", "Rejected"].includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
 
-    // NEW: If rejecting, require a reason
     if (status === "Rejected" && (!reason || reason.trim() === "")) {
       return res.status(400).json({ message: "Reason is required when rejecting" });
     }
 
-    // Determine which field to update
     let fieldToUpdate = "";
     let reasonField = "";
-    
+    let departmentLabel = "";
+
     if (staff.role && staff.role.toLowerCase().includes("department")) {
       fieldToUpdate = "departmentStatus";
       reasonField = "departmentReason";
+      departmentLabel = staff.department || "Department";
     } else {
       const fieldMap = {
-        "library": "libraryStatus",
-        "dormitory": "dormStatus",
-        "finance": "financeStatus",
-        "registrar": "registrarStatus",
-        "cafeteria": "cafeteriaStatus"
+        library: "libraryStatus",
+        dormitory: "dormStatus",
+        finance: "financeStatus",
+        registrar: "registrarStatus",
+        cafeteria: "cafeteriaStatus"
       };
-      
+
       const reasonMap = {
-        "library": "libraryReason",
-        "dormitory": "dormReason", 
-        "finance": "financeReason",
-        "registrar": "registrarReason",
-        "cafeteria": "cafeteriaReason"
+        library: "libraryReason",
+        dormitory: "dormReason",
+        finance: "financeReason",
+        registrar: "registrarReason",
+        cafeteria: "cafeteriaReason"
       };
-      
+
       fieldToUpdate = fieldMap[section];
       reasonField = reasonMap[section];
-      
+      departmentLabel = section;
+
       if (!fieldToUpdate) {
         return res.status(400).json({ message: "Invalid section provided" });
       }
     }
 
-    // Update the CLEARANCE model
     const clearances = await Clearance.find({ studentId: { $in: ids } });
 
-    if (clearances.length === 0) {
-      return res.status(404).json({ message: "No clearance records found for selected students" });
-    }
-
     const updatePromises = clearances.map(async (doc) => {
-      // Update the specific department status
       doc[fieldToUpdate] = status;
-      
-      // NEW: Handle rejection reason
-      if (status === "Rejected" && reason) {
+
+      if (status === "Rejected") {
         doc[reasonField] = reason.trim();
-      } else if (status !== "Rejected") {
-        // Clear reason if status is not Rejected
+      } else {
         doc[reasonField] = "";
       }
-      
-      // Save the clearance document (this should trigger your pre-save hooks for overall status)
+
+      // ⭐ ADD APPROVAL HISTORY
+      doc.approvalHistory.push({
+        department: departmentLabel,
+        approvedBy: staff.name || staff.email || "Staff",
+        status,
+        reason: status === "Rejected" ? reason : "",
+        date: new Date()
+      });
+
       await doc.save();
 
-      // Sync with Student Model
       await Student.findByIdAndUpdate(doc.studentId, {
         clearanceStatus: doc.overallStatus
       });
     });
 
-    // Wait for all updates to finish
     await Promise.all(updatePromises);
 
-    res.json({ 
-      message: `Successfully updated ${clearances.length} students to ${status}`, 
-      count: clearances.length 
+    res.json({
+      message: `Successfully updated ${clearances.length} students`,
+      count: clearances.length
     });
 
   } catch (err) {

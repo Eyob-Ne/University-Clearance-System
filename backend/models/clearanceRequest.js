@@ -86,7 +86,31 @@ const clearanceSchema = new mongoose.Schema({
         type: String,
         default: ""
     },
-
+  approvalHistory: [
+        {
+            department: {
+                type: String,
+                required: true
+            },
+            approvedBy: {
+                type: String,
+                required: true // Remove default, make required
+            },
+            status: {
+                type: String,
+                enum: ["Pending", "Cleared", "Rejected"],
+                required: true
+            },
+            reason: {
+                type: String,
+                default: ""
+            },
+            date: {
+                type: Date,
+                default: Date.now
+            }
+        }
+    ],
     overallStatus: {
         type: String,
         enum: ["Pending", "Approved", "Rejected"],
@@ -97,7 +121,9 @@ const clearanceSchema = new mongoose.Schema({
         type: Date,
         default: Date.now
     }
-}, {
+    
+}, 
+{
     timestamps: true // Add this to track createdAt and updatedAt
 });
 

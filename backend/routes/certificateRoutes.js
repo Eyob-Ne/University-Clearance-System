@@ -3,6 +3,7 @@ const router = express.Router();
 const PDFGenerator = require("../utils/pdfGenerator");
 const Certificate = require("../models/certificate");
 const Student = require("../models/student");
+const Clearance = require("../models/clearanceRequest");
 const { protectStudent } = require("../middleware/auth");
 
 // Generate clearance certificate
@@ -65,6 +66,22 @@ router.get("/verify/:certificateCode", async (req, res) => {
       });
     }
 
+    const clearance = await Clearance.findOne({ studentId: certificate.studentId._id });
+    
+    // ✅ FIXED: Filter out system-generated pending entries
+    const filteredHistory = (clearance?.approvalHistory || [])
+      .filter(entry => {
+        // Remove entries where:
+        // 1. ApprovedBy is "System" AND status is "Pending" (initial auto-entries)
+        // 2. Also filter out any entries with undefined/null approvedBy
+        return !(
+          (entry.approvedBy === "System" && entry.status === "Pending") ||
+          !entry.approvedBy
+        );
+      })
+      // ✅ Sort by date descending (newest first)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
     // Check expiry
     const now = new Date();
     if (now > certificate.expiryDate) {
@@ -90,7 +107,9 @@ router.get("/verify/:certificateCode", async (req, res) => {
         status: certificate.status,
         verificationCount: certificate.verificationCount,
         lastVerified: certificate.lastVerified,
-        daysUntilExpiry: daysUntilExpiry
+        daysUntilExpiry: daysUntilExpiry,
+        // ✅ Return only real approvals, no system entries
+        approvalHistory: filteredHistory
       },
       message: certificate.status === 'active' 
         ? `✅ Valid certificate (Expires in ${daysUntilExpiry} days)`
@@ -105,7 +124,6 @@ router.get("/verify/:certificateCode", async (req, res) => {
     });
   }
 });
-
 // Get student's active certificates
 router.get("/my-certificates", protectStudent, async (req, res) => {
   try {

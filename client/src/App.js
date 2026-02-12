@@ -115,7 +115,8 @@ function Footer({ mainContainerClass }) {
     '/dashboard/dormitory',
     '/dashboard/finance',
     '/dashboard/registrar',
-    '/admin-dashboard'
+    '/admin-dashboard',
+    '/verify/:certificateCode'
   ];
   
   // Check if current route is a staff dashboard route
@@ -226,7 +227,7 @@ function App() {
   const navItems = [
     { to: "/", label: "Home", icon: <FaHome className="mr-2" /> },
     { to: "/student-login", label: "Student Portal", icon: <FaUserGraduate className="mr-2" /> },
-    { to: "/staff-admin/login", label: "Staff Portal", icon: <FaUserShield className="mr-2" /> },
+    { to: "/staff-admin/login", label: "Staff Portal", icon: <FaUserShield className="mr-2" /> }
   ];
 
   const getNavLinkClass = ({ isActive }) =>
