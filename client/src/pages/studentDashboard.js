@@ -473,14 +473,14 @@ const fetchSystemStatus = async () => {
               />
 
               <StatusCard
-                title="Sport Master"
+                title="Registrar"
                 status={clearance.registrarStatus}
                 icon={badgeIcon(clearance.registrarStatus)}
                 color={badgeColor(clearance.registrarStatus)}
                 isRejected={clearance.registrarStatus === "Rejected"}
                 rejectionReason={clearanceReasons?.registrar || ""}
                 onClick={() => handleRejectionClick(
-                  "Sport Master", 
+                  "Registrar", 
                   clearance.registrarStatus, 
                   clearanceReasons?.registrar || ""
                 )}
@@ -504,7 +504,7 @@ const fetchSystemStatus = async () => {
 
           {/* Overall Status */}
           <div className="bg-white p-6 shadow rounded-xl border text-center mb-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-3">Registrar</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-3">Overall Status</h2>
 
             <div className={`inline-flex items-center gap-2 px-5 py-2 border rounded-full text-lg font-semibold ${badgeColor(clearance.overallStatus)}`}>
               {badgeIcon(clearance.overallStatus)}
