@@ -108,28 +108,10 @@ const filteredHistory = (clearance?.approvalHistory || [])
 
     // Check expiry
     const now = new Date();
-const isExpired = now > certificate.expiryDate;
-
-if (isExpired) {
-  // optional: update status once
-  if (certificate.status !== 'expired') {
-    certificate.status = 'expired';
-    await certificate.save();
-  }
-
-  return res.json({
-    valid: false,
-    message: "❌ Certificate has expired",
-    certificate: {
-      id: certificate.certificateId,
-      student: certificate.studentId,
-      issueDate: certificate.issueDate,
-      expiryDate: certificate.expiryDate,
-      status: "expired"
+    if (now > certificate.expiryDate) {
+      certificate.status = 'expired';
+      await certificate.save();
     }
-  });
-}
-
 
     // Update verification stats
     certificate.verificationCount += 1;

@@ -306,7 +306,7 @@ function StudentLogin() {
                       <div className="mt-3 flex items-center justify-between">
                         <div className="flex items-center text-sm text-gray-500">
                           <Clock className="h-4 w-4 mr-1" />
-                          Expires in 10 minutes
+                          Expires in 5 minutes
                         </div>
                         <button
                           type="button"

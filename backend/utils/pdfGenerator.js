@@ -96,8 +96,8 @@ static async generateFromExisting(student, certificate) {
       .toUpperCase();
 
     // Set expiry (1 month from now)
-const expiryDate = new Date(Date.now() + 3 * 60 * 1000);
-
+    const expiryDate = new Date();
+    expiryDate.setMonth(expiryDate.getMonth() + 1);
 
     // Generate QR code URL
     const qrCodeUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify/${certificateId}-${securityHash}`;
