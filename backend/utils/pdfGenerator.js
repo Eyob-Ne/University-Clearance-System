@@ -44,6 +44,42 @@ class PDFGenerator {
       }
     });
   }
+static async generateFromExisting(student, certificate) {
+  return new Promise(async (resolve, reject) => {
+    try {
+
+      const qrCodeUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify/${certificate.certificateId}-${certificate.securityHash}`;
+
+      const qrCodeDataUrl = await QRCode.toDataURL(qrCodeUrl);
+
+      const doc = new PDFDocument({
+        size: 'A4',
+        margins: { top: 50, bottom: 50, left: 50, right: 50 }
+      });
+
+      let buffers = [];
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => {
+        resolve({
+          pdfBuffer: Buffer.concat(buffers)
+        });
+      });
+
+      this.addCertificateContent(
+        doc,
+        student,
+        certificate.certificateId,
+        certificate.expiryDate,
+        qrCodeDataUrl
+      );
+
+      doc.end();
+
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
 
   static async createCertificateRecord(student) {
     // Generate unique certificate ID
@@ -60,8 +96,8 @@ class PDFGenerator {
       .toUpperCase();
 
     // Set expiry (1 month from now)
-    const expiryDate = new Date();
-    expiryDate.setMonth(expiryDate.getMonth() + 1);
+const expiryDate = new Date(Date.now() + 3 * 60 * 1000);
+
 
     // Generate QR code URL
     const qrCodeUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify/${certificateId}-${securityHash}`;

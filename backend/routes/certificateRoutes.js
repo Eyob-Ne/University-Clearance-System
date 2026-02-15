@@ -10,24 +10,52 @@ const { protectStudent } = require("../middleware/auth");
 router.post("/generate", protectStudent, async (req, res) => {
   try {
     const student = await Student.findById(req.student.id);
-    
+
     if (!student) {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    // Check if student is fully cleared
     if (student.clearanceStatus !== "Approved") {
-      return res.status(400).json({ 
-        error: "Clearance not completed. Please complete all clearance procedures first." 
+      return res.status(400).json({
+        error: "Clearance not completed. Please complete all clearance procedures first."
       });
     }
 
-    const { pdfBuffer, certificateId, expiryDate } = await PDFGenerator.generateClearanceCertificate(student);
+    // ✅ 1️⃣ Check for existing active certificate
+    let existingCertificate = await Certificate.findOne({
+      studentId: student._id,
+      status: "active"
+    });
+
+    let certificateId;
+    let expiryDate;
+    let pdfBuffer;
+
+    if (existingCertificate) {
+      // ✅ Reuse existing certificate
+      certificateId = existingCertificate.certificateId;
+      expiryDate = existingCertificate.expiryDate;
+
+      const result = await PDFGenerator.generateFromExisting(
+        student,
+        existingCertificate
+      );
+
+      pdfBuffer = result.pdfBuffer;
+
+    } else {
+      // ✅ Create new certificate
+      const result = await PDFGenerator.generateClearanceCertificate(student);
+
+      certificateId = result.certificateId;
+      expiryDate = result.expiryDate;
+      pdfBuffer = result.pdfBuffer;
+    }
 
     res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="MAU-Clearance-${student.studentId}.pdf"`,
-      'Content-Length': pdfBuffer.length
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="MAU-Clearance-${student.studentId}.pdf"`,
+      "Content-Length": pdfBuffer.length
     });
 
     res.send(pdfBuffer);
@@ -37,6 +65,7 @@ router.post("/generate", protectStudent, async (req, res) => {
     res.status(500).json({ error: "Failed to generate certificate" });
   }
 });
+
 
 // Verify certificate
 router.get("/verify/:certificateCode", async (req, res) => {
@@ -79,10 +108,28 @@ const filteredHistory = (clearance?.approvalHistory || [])
 
     // Check expiry
     const now = new Date();
-    if (now > certificate.expiryDate) {
-      certificate.status = 'expired';
-      await certificate.save();
+const isExpired = now > certificate.expiryDate;
+
+if (isExpired) {
+  // optional: update status once
+  if (certificate.status !== 'expired') {
+    certificate.status = 'expired';
+    await certificate.save();
+  }
+
+  return res.json({
+    valid: false,
+    message: "❌ Certificate has expired",
+    certificate: {
+      id: certificate.certificateId,
+      student: certificate.studentId,
+      issueDate: certificate.issueDate,
+      expiryDate: certificate.expiryDate,
+      status: "expired"
     }
+  });
+}
+
 
     // Update verification stats
     certificate.verificationCount += 1;
