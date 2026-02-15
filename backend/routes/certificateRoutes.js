@@ -67,20 +67,15 @@ router.get("/verify/:certificateCode", async (req, res) => {
     }
 
     const clearance = await Clearance.findOne({ studentId: certificate.studentId._id });
-    
-    // ✅ FIXED: Filter out system-generated pending entries
-    const filteredHistory = (clearance?.approvalHistory || [])
-      .filter(entry => {
-        // Remove entries where:
-        // 1. ApprovedBy is "System" AND status is "Pending" (initial auto-entries)
-        // 2. Also filter out any entries with undefined/null approvedBy
-        return !(
-          (entry.approvedBy === "System" && entry.status === "Pending") ||
-          !entry.approvedBy
-        );
-      })
-      // ✅ Sort by date descending (newest first)
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+// ✅ COMBINED: Clean and concise version
+const filteredHistory = (clearance?.approvalHistory || [])
+  .filter(entry => 
+    entry.status === "Cleared" && 
+    entry.approvedBy && 
+    !(entry.approvedBy === "System" && entry.status === "Pending")
+  )
+  .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // Check expiry
     const now = new Date();

@@ -1042,29 +1042,6 @@ export default function StaffDashboard() {
                   </h4>
                   
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        value={profileData.fullName}
-                        onChange={(e) => {
-                          setProfileData({ ...profileData, fullName: e.target.value });
-                          setProfileErrors({ ...profileErrors, fullName: "" });
-                        }}
-                        className={`w-full px-4 py-3 rounded-lg border ${
-                          profileErrors.fullName ? 'border-rose-500' : 'border-gray-300'
-                        } focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200`}
-                        placeholder="Enter your full name"
-                      />
-                      {profileErrors.fullName && (
-                        <p className="mt-2 text-sm text-rose-600 flex items-center">
-                          <AlertCircle className="h-4 w-4 mr-1" />
-                          {profileErrors.fullName}
-                        </p>
-                      )}
-                    </div>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
