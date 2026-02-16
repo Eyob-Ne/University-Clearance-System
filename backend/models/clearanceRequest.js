@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-
+const sendStatusEmail = require("../utils/sendStatusEmail");
+const Student = require("./student");
 const clearanceSchema = new mongoose.Schema({
     studentId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -128,7 +129,7 @@ const clearanceSchema = new mongoose.Schema({
 });
 
 // Update overall status before saving
-clearanceSchema.pre('save', function(next) {
+clearanceSchema.pre('save', async function(next) {
     const statuses = [
         this.departmentStatus,
         this.libraryStatus,
@@ -150,8 +151,43 @@ clearanceSchema.pre('save', function(next) {
     else {
         this.overallStatus = "Pending";
     }
+     if (!this.isNew) {
+        const existing = await this.constructor.findById(this._id);
+        this._previousOverallStatus = existing?.overallStatus;
+    }
     
     next();
 });
+clearanceSchema.post('save', async function(doc) {
+    try {
+        if (!this._previousOverallStatus) return;
+
+        const oldStatus = this._previousOverallStatus;
+        const newStatus = doc.overallStatus;
+
+        if (
+           oldStatus !== newStatus && 
+            (newStatus === "Rejected" || newStatus === "Approved")
+        ) {
+
+            // Get student info
+            const student = await Student.findById(doc.studentId);
+
+            if (student && student.email) {
+                await sendStatusEmail(
+                    student.email,
+                    student.fullName || student.name || "Student",
+                    newStatus.toLowerCase()
+                );
+
+                console.log(`📧 Email sent to ${student.email} for ${newStatus}`);
+            }
+        }
+
+    } catch (error) {
+        console.error("❌ Error sending status email:", error);
+    }
+});
+
 
 module.exports = mongoose.model("Clearance", clearanceSchema);
