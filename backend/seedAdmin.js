@@ -4,8 +4,7 @@ require('dotenv').config();
 
 const DEFAULT_PASSWORD = 'SecureAdminPassword456!'; 
 
-const MONGODB_URI = 'mongodb+srv://eyobadb:12345@cluster0.lmkhnbn.mongodb.net/university_clearance?retryWrites=true&w=majority';
-
+const MONGODB_URI = process.env.MONGODB_URI;
 const seedAdmin = async () => {
   try {
     // 1. Connect to the database (using your MongoDB Atlas URI)
